@@ -88,6 +88,10 @@ $stmt = $conn->prepare("
             ELSE m.sender_id
         END as contact_id,
         CASE 
+            WHEN m.sender_id = ? THEN r.name
+            ELSE s.name
+        END as contact_name,
+        CASE 
             WHEN m.sender_id = ? THEN r.email
             ELSE s.email
         END as contact_email,
@@ -96,10 +100,10 @@ $stmt = $conn->prepare("
     JOIN Users s ON m.sender_id = s.user_id
     JOIN Users r ON m.receiver_id = r.user_id
     WHERE m.sender_id = ? OR m.receiver_id = ?
-    GROUP BY contact_id, contact_email
+    GROUP BY contact_id, contact_name, contact_email
     ORDER BY last_message_time DESC
 ");
-$stmt->execute([$user['user_id'], $user['user_id'], $user['user_id'], $user['user_id']]);
+$stmt->execute([$user['user_id'], $user['user_id'], $user['user_id'], $user['user_id'], $user['user_id']]);
 $conversations = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Handle new message to a new user
@@ -153,10 +157,12 @@ if ($selected_contact) {
     $stmt->execute([$user['user_id'], $user['user_id'], $selected_contact, $selected_contact, $user['user_id']]);
     $messages = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Get contact email
-    $stmt = $conn->prepare("SELECT email FROM Users WHERE user_id = ?");
+    // Get contact info
+    $stmt = $conn->prepare("SELECT email, name FROM Users WHERE user_id = ?");
     $stmt->execute([$selected_contact]);
-    $contact_email = $stmt->fetch(PDO::FETCH_COLUMN);
+    $contact_info = $stmt->fetch(PDO::FETCH_ASSOC);
+    $contact_email = $contact_info['email'];
+    $contact_name = $contact_info['name'];
 }
 
 // Handle sending message in conversation
@@ -259,7 +265,8 @@ function verify_donation_request($request_id, $contact_id)
                     <?php foreach ($conversations as $conv): ?>
                         <a href="?contact=<?php echo $conv['contact_id']; ?>"
                             class="block p-4 hover:bg-gray-50 <?php echo ($selected_contact == $conv['contact_id']) ? 'bg-gray-100' : ''; ?>">
-                            <div class="font-medium"><?php echo htmlspecialchars($conv['contact_email']); ?></div>
+                            <div class="font-medium"><?php echo htmlspecialchars($conv['contact_name']); ?></div>
+                            <div class="text-sm text-gray-500"><?php echo htmlspecialchars($conv['contact_email']); ?></div>
                             <div class="text-xs text-gray-500">
                                 <?php echo date('M j, Y g:i A', strtotime($conv['last_message_time'])); ?>
                             </div>
@@ -273,7 +280,8 @@ function verify_donation_request($request_id, $contact_id)
                 <?php if ($selected_contact): ?>
                     <!-- Contact Header -->
                     <div class="p-4 border-b">
-                        <h2 class="font-medium"><?php echo htmlspecialchars($contact_email); ?></h2>
+                        <h2 class="font-medium"><?php echo htmlspecialchars($contact_name); ?></h2>
+                        <div class="text-sm text-gray-600"><?php echo htmlspecialchars($contact_email); ?></div>
                     </div>
 
                     <!-- Messages -->
