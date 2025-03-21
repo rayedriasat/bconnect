@@ -28,7 +28,7 @@ if (!isset($user)) {
             </div>
             <div class="flex items-center space-x-4">
                 <span class="text-gray-700"><?php echo htmlspecialchars($user['email']); ?></span>
-                <a href="<?php echo BASE_URL; ?>/logout.php" class="text-red-600 hover:text-red-800">Logout</a>
+                <a href="<?php echo BASE_URL; ?>/views/auth/logout.php" class="text-red-600 hover:text-red-800">Logout</a>
             </div>
         </div>
     </div>
