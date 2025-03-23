@@ -12,45 +12,67 @@ $stmt = $conn->prepare("SELECT * FROM Donor WHERE user_id = ?");
 $stmt->execute([$user['user_id']]);
 $donor = $stmt->fetch(PDO::FETCH_ASSOC);
 
-// Get list of hospitals
+if (!$donor) {
+    header('Location: ' . BASE_URL . '/dashboard.php');
+    exit();
+}
+
+// Get request details
+if (!isset($_GET['request_id'])) {
+    header('Location: ' . BASE_URL . '/donation-requests.php');
+    exit();
+}
+
 $stmt = $conn->prepare("
-    SELECT hospital_id, name, address, phone_number 
-    FROM Hospital 
-    ORDER BY name
+    SELECT dr.*, h.name as hospital_name, h.address as hospital_address 
+    FROM DonationRequest dr
+    JOIN Hospital h ON dr.hospital_id = h.hospital_id
+    WHERE dr.request_id = ? AND dr.blood_type = ?
 ");
-$stmt->execute();
-$hospitals = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$stmt->execute([$_GET['request_id'], $donor['blood_type']]);
+$request = $stmt->fetch(PDO::FETCH_ASSOC);
+
+if (!$request) {
+    header('Location: ' . BASE_URL . '/donation-requests.php?error=invalid_request');
+    exit();
+}
 
 $error = '';
 $success = '';
 
-// Handle appointment scheduling
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $hospital_id = $_POST['hospital_id'];
     $scheduled_date = $_POST['date'];
     $scheduled_time = $_POST['time'];
-
-    // Combine date and time
     $scheduled_datetime = $scheduled_date . ' ' . $scheduled_time;
 
-    // Validate datetime
-    $scheduled_timestamp = strtotime($scheduled_datetime);
-    $current_timestamp = time();
-
-    if ($scheduled_timestamp < $current_timestamp) {
+    if (strtotime($scheduled_datetime) < time()) {
         $error = 'Cannot schedule appointments in the past';
     } else {
         try {
             $stmt = $conn->prepare("
-                INSERT INTO Appointment (donor_id, hospital_id, scheduled_time, status)
-                VALUES (?, ?, ?, 'pending')
+                INSERT INTO DonationAppointment (
+                    request_id, donor_id, scheduled_time, status
+                ) VALUES (?, ?, ?, 'pending')
             ");
-            $stmt->execute([$donor['donor_id'], $hospital_id, $scheduled_datetime]);
+            $stmt->execute([
+                $request['request_id'],
+                $donor['donor_id'],
+                $scheduled_datetime
+            ]);
 
-            $success = 'Appointment scheduled successfully!';
+            // Send notification to requester
+            $stmt = $conn->prepare("
+                INSERT INTO Message (sender_id, receiver_id, content) 
+                VALUES (?, ?, ?)
+            ");
+            $stmt->execute([
+                $user['user_id'],
+                $request['requester_id'],
+                "A donor has scheduled an appointment for your blood donation request."
+            ]);
 
-            // Redirect to appointments page after 2 seconds
-            header("refresh:2;url=" . BASE_URL . "/appointments.php");
+            header('Location: ' . BASE_URL . '/appointments.php?success=1');
+            exit();
         } catch (Exception $e) {
             $error = 'Failed to schedule appointment. Please try again.';
         }
@@ -64,16 +86,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Schedule Appointment - BloodConnect</title>
+    <title>Schedule Donation Appointment - BloodConnect</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
 <body class="bg-gray-100">
     <?php require_once 'includes/navigation.php'; ?>
 
-    <div class="max-w-7xl mx-auto px-4 py-6">
+    <div class="max-w-7xl mx-auto px-4 py-8">
         <div class="bg-white rounded-lg shadow p-6">
-            <h2 class="text-2xl font-semibold mb-6">Schedule New Appointment</h2>
+            <h2 class="text-2xl font-semibold mb-6">Schedule Donation Appointment</h2>
 
             <?php if ($error): ?>
                 <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
@@ -81,26 +103,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
             <?php endif; ?>
 
-            <?php if ($success): ?>
-                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-                    <?php echo htmlspecialchars($success); ?>
+            <div class="mb-6">
+                <h3 class="text-lg font-medium mb-2">Request Details</h3>
+                <div class="bg-gray-50 p-4 rounded">
+                    <p><strong>Hospital:</strong> <?php echo htmlspecialchars($request['hospital_name']); ?></p>
+                    <p><strong>Address:</strong> <?php echo htmlspecialchars($request['hospital_address']); ?></p>
+                    <p><strong>Blood Type:</strong> <?php echo $request['blood_type']; ?></p>
+                    <p><strong>Units Needed:</strong> <?php echo $request['quantity']; ?></p>
                 </div>
-            <?php endif; ?>
+            </div>
 
             <form method="POST" class="space-y-6">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Select Hospital</label>
-                    <select name="hospital_id" required class="w-full rounded-md border-gray-300 shadow-sm">
-                        <option value="">Choose a hospital...</option>
-                        <?php foreach ($hospitals as $hospital): ?>
-                            <option value="<?php echo $hospital['hospital_id']; ?>">
-                                <?php echo htmlspecialchars($hospital['name']); ?> -
-                                <?php echo htmlspecialchars($hospital['address']); ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Date</label>
@@ -121,9 +134,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
 
                 <div class="flex items-center justify-between pt-4">
-                    <a href="<?php echo BASE_URL; ?>/appointments.php"
+                    <a href="<?php echo BASE_URL; ?>/donation-requests.php"
                         class="text-gray-600 hover:text-gray-800">
-                        Back to Appointments
+                        Back to Requests
                     </a>
                     <button type="submit"
                         class="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700">

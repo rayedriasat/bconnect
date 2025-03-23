@@ -18,7 +18,8 @@ $stmt = $conn->prepare("
         drh.*,
         h.name as hospital_name,
         h.address as hospital_address,
-        u.email as requester_email
+        u.email as requester_email,
+        u.phone_number as requester_phone
     FROM DonationRequestHistory drh
     JOIN Hospital h ON drh.hospital_id = h.hospital_id
     JOIN Users u ON drh.requester_id = u.user_id
@@ -44,10 +45,16 @@ $donations = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     <div class="max-w-7xl mx-auto px-4 py-8">
         <div class="bg-white rounded-lg shadow p-6">
-            <h2 class="text-2xl font-semibold mb-6">My Donation History</h2>
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-semibold">My Donation History</h2>
+                <a href="<?php echo BASE_URL; ?>/donation-requests.php"
+                    class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                    Find Donation Requests
+                </a>
+            </div>
 
             <?php if (empty($donations)): ?>
-                <p class="text-gray-500">You haven't made any donations yet.</p>
+                <p class="text-gray-500 text-center py-4">You haven't made any donations yet.</p>
             <?php else: ?>
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
@@ -66,6 +73,9 @@ $donations = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     Quantity
                                 </th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Requester Contact
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Status
                                 </th>
                             </tr>
@@ -76,7 +86,7 @@ $donations = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         <?php echo date('M j, Y', strtotime($donation['fulfilled_at'])); ?>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
+                                    <td class="px-6 py-4">
                                         <div class="text-sm font-medium text-gray-900">
                                             <?php echo htmlspecialchars($donation['hospital_name']); ?>
                                         </div>
@@ -89,6 +99,14 @@ $donations = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         <?php echo $donation['quantity']; ?> units
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="text-sm text-gray-500">
+                                            <?php echo htmlspecialchars($donation['requester_email']); ?>
+                                        </div>
+                                        <div class="text-sm text-gray-500">
+                                            <?php echo htmlspecialchars($donation['requester_phone']); ?>
+                                        </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
