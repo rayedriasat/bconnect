@@ -14,9 +14,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     $token = $user->createPasswordReset($_POST['email']);
     if ($token) {
-        // In real application, send this link via email
-        $reset_link = BASE_URL . "/views/auth/reset-password.php?token=" . $token;
-        $message = 'Password reset instructions have been sent to your email';
+        if ($user->sendPasswordResetEmail($_POST['email'], $token)) {
+            $message = 'Password reset instructions have been sent to your email';
+        } else {
+            $error = 'Failed to send reset instructions. Please try again later.';
+        }
     } else {
         $error = 'Email address not found';
     }

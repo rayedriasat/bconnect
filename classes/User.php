@@ -259,4 +259,70 @@ class User
             return false;
         }
     }
+
+    public function sendPasswordResetEmail($email, $token)
+    {
+        $mail = new PHPMailer(true);
+
+        try {
+            // SMTP Configuration
+            $mail->isSMTP();
+            $mail->Host       = 'smtp.gmail.com';
+            $mail->SMTPAuth   = true;
+            $mail->Username   = 'coderay231@gmail.com';
+            $mail->Password   = 'zebm wluz tedz qhnt';
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->Port       = 587;
+
+            // Email Content
+            $mail->setFrom('coderay231@gmail.com', 'BloodConnect');
+            $mail->addAddress($email);
+            $mail->isHTML(true);
+            $mail->Subject = 'Reset Your BloodConnect Password';
+
+            $reset_link = 'http://localhost/bconnect/views/auth/reset-password.php?token=' . $token;
+
+            $mail->Body = "
+            <html>
+            <head>
+                <style>
+                    .container {
+                        padding: 20px;
+                        font-family: Arial, sans-serif;
+                    }
+                    .button {
+                        background-color: #2563eb;
+                        color: white;
+                        padding: 10px 20px;
+                        text-decoration: none;
+                        border-radius: 5px;
+                        display: inline-block;
+                        margin: 20px 0;
+                    }
+                    .warning {
+                        color: #dc2626;
+                        font-size: 14px;
+                        margin-top: 20px;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class='container'>
+                    <h2>Password Reset Request</h2>
+                    <p>We received a request to reset your password. Click the button below to reset it:</p>
+                    <a href='$reset_link' class='button'>Reset Password</a>
+                    <p>This link will expire in 1 hour.</p>
+                    <p class='warning'>If you didn't request this reset, please ignore this email and ensure your account security.</p>
+                </div>
+            </body>
+            </html>";
+
+            $mail->AltBody = "Reset your password by clicking this link: $reset_link\nThis link will expire in 1 hour.";
+
+            return $mail->send();
+        } catch (Exception $e) {
+            error_log("Password reset email sending failed: " . $mail->ErrorInfo);
+            return false;
+        }
+    }
 }
