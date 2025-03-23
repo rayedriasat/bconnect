@@ -1,4 +1,10 @@
 <?php
+require_once __DIR__ . '/../src/PHPMailer.php';
+require_once __DIR__ . '/../src/SMTP.php';
+require_once __DIR__ . '/../src/Exception.php';
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
 
 class User
 {
@@ -38,6 +44,14 @@ class User
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($user && password_verify($password, $user['password'])) {
+            // Check if 2FA is enabled
+            if ($user['two_factor_enabled']) {
+                return [
+                    'requires_2fa' => true,
+                    'user_id' => $user['user_id'],
+                    'email' => $user['email']
+                ];
+            }
             return $user;
         }
         return false;
@@ -47,6 +61,12 @@ class User
     {
         $code = sprintf("%06d", random_int(0, 999999));
 
+        // Delete any existing unused codes for this user
+        $sql = "DELETE FROM VerificationCodes WHERE user_id = :user_id AND is_used = FALSE";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':user_id' => $userId]);
+
+        // Insert new code
         $sql = "INSERT INTO VerificationCodes (user_id, code) VALUES (:user_id, :code)";
         try {
             $stmt = $this->db->prepare($sql);
@@ -167,6 +187,75 @@ class User
             return true;
         } catch (PDOException $e) {
             $this->db->rollBack();
+            return false;
+        }
+    }
+
+    public function sendVerificationEmail($email, $code)
+    {
+        require_once __DIR__ . '/../src/PHPMailer.php';
+        require_once __DIR__ . '/../src/SMTP.php';
+        require_once __DIR__ . '/../src/Exception.php';
+
+        $mail = new PHPMailer(true);
+
+        try {
+            // SMTP Configuration
+            $mail->isSMTP();
+            $mail->Host       = 'smtp.gmail.com';
+            $mail->SMTPAuth   = true;
+            $mail->Username   = 'coderay231@gmail.com'; // Your Gmail
+            $mail->Password   = 'zebm wluz tedz qhnt'; // Your App Password
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->Port       = 587;
+
+            // Email Content
+            $mail->setFrom('coderay231@gmail.com', 'BloodConnect');
+            $mail->addAddress($email);
+            $mail->isHTML(true);
+            $mail->Subject = 'Your BloodConnect Verification Code';
+
+            $mail->Body = "
+            <html>
+            <head>
+                <style>
+                    .container {
+                        padding: 20px;
+                        font-family: Arial, sans-serif;
+                    }
+                    .code {
+                        font-size: 24px;
+                        font-weight: bold;
+                        color: #2563eb;
+                        padding: 10px;
+                        background-color: #f3f4f6;
+                        border-radius: 5px;
+                        margin: 10px 0;
+                    }
+                    .warning {
+                        color: #dc2626;
+                        font-size: 14px;
+                        margin-top: 20px;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class='container'>
+                    <h2>Your Verification Code</h2>
+                    <p>Please use the following code to complete your login:</p>
+                    <div class='code'>$code</div>
+                    <p>This code will expire in 10 minutes.</p>
+                    <p class='warning'>If you didn't request this code, please ignore this email and ensure your account security.</p>
+                </div>
+            </body>
+            </html>";
+
+            $mail->AltBody = "Your verification code is: $code\nThis code will expire in 10 minutes.";
+
+            return $mail->send();
+        } catch (Exception $e) {
+            // Log the error (implement proper logging in production)
+            error_log("Email sending failed: " . $mail->ErrorInfo);
             return false;
         }
     }

@@ -7,7 +7,7 @@ define('BASE_URL', '/bconnect');
 
 $error = '';
 $requires_2fa = false;
-$user_id = null;
+$success_message = '';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $db = new Database();
@@ -18,12 +18,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $result = $user->login($_POST['email'], $_POST['password']);
 
         if ($result) {
-            if ($result['requires_2fa']) {
+            if (isset($result['requires_2fa']) && $result['requires_2fa']) {
                 $requires_2fa = true;
                 $user_id = $result['user_id'];
                 $code = $user->generateVerificationCode($user_id);
-                $_SESSION['2fa_required'] = true;
-                $_SESSION['temp_user_id'] = $user_id;
+
+                if ($user->sendVerificationEmail($result['email'], $code)) {
+                    $_SESSION['2fa_required'] = true;
+                    $_SESSION['temp_user_id'] = $user_id;
+                    $success_message = 'Verification code sent! Please check your email.';
+                } else {
+                    $error = 'Failed to send verification code. Please try again or contact support.';
+                }
             } else {
                 $_SESSION['user'] = $result;
                 header('Location: ' . BASE_URL . '/dashboard.php');
@@ -43,20 +49,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             header('Location: ' . BASE_URL . '/dashboard.php');
             exit();
         } else {
-            $error = 'Invalid verification code';
+            $error = 'Invalid or expired verification code';
         }
     }
 }
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html>
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - BloodConnect</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
 
 <body class="bg-gray-100">
@@ -70,49 +74,52 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 </div>
             <?php endif; ?>
 
-            <?php if ($requires_2fa): ?>
+            <?php if ($success_message): ?>
+                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+                    <?php echo htmlspecialchars($success_message); ?>
+                </div>
+            <?php endif; ?>
+
+            <?php if ($requires_2fa || isset($_SESSION['2fa_required'])): ?>
                 <form method="POST" class="space-y-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Verification Code</label>
-                        <input type="text" name="verification_code" required
-                            class="mt-1 block w-full rounded-md border-2 border-gray-300 shadow-sm">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Verification Code</label>
+                        <input type="text" name="verification_code"
+                            class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+                            placeholder="Enter 6-digit code" required>
                     </div>
                     <button type="submit"
-                        class="w-full bg-blue-500 text-white rounded-md py-2 hover:bg-blue-600">
+                        class="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
                         Verify Code
                     </button>
                 </form>
             <?php else: ?>
                 <form method="POST" class="space-y-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Email</label>
-                        <input type="email" name="email" required
-                            class="mt-1 block w-full rounded-md border-2 border-gray-300 shadow-sm">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Email</label>
+                        <input type="email" name="email"
+                            class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+                            required>
                     </div>
-
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Password</label>
-                        <input type="password" name="password" required
-                            class="mt-1 block w-full rounded-md border-2 border-gray-300 shadow-sm">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Password</label>
+                        <input type="password" name="password"
+                            class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+                            required>
                     </div>
-
-                    <div class="flex items-center justify-between">
-                        <a href="forgot-password.php" class="text-sm text-blue-500 hover:text-blue-700">
-                            Forgot Password?
-                        </a>
-                    </div>
-
                     <button type="submit"
-                        class="w-full bg-blue-500 text-white rounded-md py-2 hover:bg-blue-600">
+                        class="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
                         Login
                     </button>
                 </form>
             <?php endif; ?>
 
-            <p class="mt-4 text-center text-sm">
-                Don't have an account?
-                <a href="register.php" class="text-blue-500 hover:text-blue-700">Register here</a>
-            </p>
+            <div class="mt-4 text-center">
+                <a href="<?php echo BASE_URL; ?>/views/auth/forgot-password.php"
+                    class="text-sm text-blue-500 hover:text-blue-700">
+                    Forgot Password?
+                </a>
+            </div>
         </div>
     </div>
 </body>

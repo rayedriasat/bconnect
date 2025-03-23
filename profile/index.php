@@ -4,8 +4,25 @@ require_once '../includes/auth_middleware.php';
 $success = '';
 $error = '';
 
-// Handle form submission
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+// Handle 2FA toggle
+if (isset($_POST['toggle_2fa'])) {
+    try {
+        $new_2fa_status = $_POST['toggle_2fa'] === 'enable' ? 1 : 0;
+        $stmt = $conn->prepare("UPDATE Users SET two_factor_enabled = ? WHERE user_id = ?");
+        $stmt->execute([$new_2fa_status, $user['user_id']]);
+
+        // Update session
+        $_SESSION['user']['two_factor_enabled'] = $new_2fa_status;
+        $user = $_SESSION['user'];
+
+        $success = '2-Factor Authentication has been ' . ($new_2fa_status ? 'enabled' : 'disabled');
+    } catch (Exception $e) {
+        $error = 'Failed to update 2FA settings';
+    }
+}
+
+// Handle regular profile updates
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['toggle_2fa'])) {
     try {
         // Start transaction
         $conn->beginTransaction();
@@ -119,6 +136,31 @@ if ($isDonor) {
                                 class="mt-1 block w-full rounded-md border-2 border-gray-300"><?php echo htmlspecialchars($donorDetails['medical_notes'] ?? ''); ?></textarea>
                         </div>
                     <?php endif; ?>
+                </div>
+
+                <div class="border-t mt-6 pt-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-900">Two-Factor Authentication</h3>
+                            <p class="text-sm text-gray-500">
+                                <?php echo $user['two_factor_enabled']
+                                    ? 'Your account is protected with 2FA'
+                                    : 'Enable 2FA for additional security'; ?>
+                            </p>
+                        </div>
+                        <form method="POST" class="ml-4">
+                            <input type="hidden"
+                                name="toggle_2fa"
+                                value="<?php echo $user['two_factor_enabled'] ? 'disable' : 'enable'; ?>">
+                            <button type="submit"
+                                class="<?php echo $user['two_factor_enabled']
+                                            ? 'bg-red-600 hover:bg-red-700'
+                                            : 'bg-green-600 hover:bg-green-700'; ?> 
+                                    text-white px-4 py-2 rounded-md transition duration-150">
+                                <?php echo $user['two_factor_enabled'] ? 'Disable 2FA' : 'Enable 2FA'; ?>
+                            </button>
+                        </form>
+                    </div>
                 </div>
 
                 <div class="flex items-center justify-between pt-4 border-t">
