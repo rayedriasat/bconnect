@@ -44,14 +44,6 @@ class User
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($user && password_verify($password, $user['password'])) {
-            // Check if 2FA is enabled
-            if ($user['two_factor_enabled']) {
-                return [
-                    'requires_2fa' => true,
-                    'user_id' => $user['user_id'],
-                    'email' => $user['email']
-                ];
-            }
             return $user;
         }
         return false;
@@ -144,7 +136,7 @@ class User
 
     public function verifyPasswordReset($token)
     {
-        $sql = "SELECT user_id FROM PasswordResets 
+        $sql = "SELECT * FROM PasswordResets 
                 WHERE token = :token 
                 AND is_used = FALSE 
                 AND expires_at > NOW()";
@@ -291,13 +283,22 @@ class User
                         font-family: Arial, sans-serif;
                     }
                     .button {
-                        background-color: #2563eb;
-                        color: white;
-                        padding: 10px 20px;
+                        background-color: #1d4ed8;  /* Darker blue for better contrast */
+                        color: white !important;    /* Force white text */
+                        padding: 12px 24px;         /* Larger padding */
+                        font-size: 16px;            /* Larger font size */
                         text-decoration: none;
-                        border-radius: 5px;
+                        border-radius: 6px;         /* Slightly rounded corners */
                         display: inline-block;
                         margin: 20px 0;
+                        border: 2px solid #1e40af;  /* Add border */
+                        transition: all 0.3s ease;  /* Smooth hover effect */
+                        box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Add subtle shadow */
+                    }
+                    .button:hover {
+                        background-color: #1e40af;  /* Darker hover state */
+                        transform: translateY(-1px); /* Lift effect on hover */
+                        box-shadow: 0 4px 6px rgba(0,0,0,0.15); /* Enhanced shadow on hover */
                     }
                     .warning {
                         color: #dc2626;
@@ -310,14 +311,14 @@ class User
                 <div class='container'>
                     <h2>Password Reset Request</h2>
                     <p>We received a request to reset your password. Click the button below to reset it:</p>
-                    <a href='$reset_link' class='button'>Reset Password</a>
-                    <p>This link will expire in 1 hour.</p>
+                    <a href='$reset_link' class='button'>Reset Password Now →</a>
+                    <p>This link will expire in 10 minutes.</p>
                     <p class='warning'>If you didn't request this reset, please ignore this email and ensure your account security.</p>
                 </div>
             </body>
             </html>";
 
-            $mail->AltBody = "Reset your password by clicking this link: $reset_link\nThis link will expire in 1 hour.";
+            $mail->AltBody = "Reset your password by clicking this link: $reset_link\nThis link will expire in 10 minutes.";
 
             return $mail->send();
         } catch (Exception $e) {
@@ -327,19 +328,22 @@ class User
     }
 
     // Add these methods to reduce duplicate queries
-    public function emailExists($email) {
+    public function emailExists($email)
+    {
         $stmt = $this->db->prepare("SELECT user_id FROM Users WHERE email = ?");
         $stmt->execute([$email]);
         return $stmt->rowCount() > 0;
     }
-    
-    public function phoneExists($phone) {
+
+    public function phoneExists($phone)
+    {
         $stmt = $this->db->prepare("SELECT user_id FROM Users WHERE phone_number = ?");
         $stmt->execute([$phone]);
         return $stmt->rowCount() > 0;
     }
-    
-    public function getByEmail($email) {
+
+    public function getByEmail($email)
+    {
         $stmt = $this->db->prepare("SELECT * FROM Users WHERE email = ?");
         $stmt->execute([$email]);
         return $stmt->fetch(PDO::FETCH_ASSOC);

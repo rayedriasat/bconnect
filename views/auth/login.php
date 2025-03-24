@@ -1,48 +1,38 @@
 <?php
 session_start();
-if (isset($_SESSION['success_message'])) {
-    $success = $_SESSION['success_message'];
-    unset($_SESSION['success_message']);
-} else {
-    $success = '';
-}
-require_once '../../config/database.php';
 require_once '../../classes/User.php';
-
+require_once '../../Core/functs.php';
+$success = getFlashMessage('success');
+$error = getFlashMessage('error');
 define('BASE_URL', '/bconnect');
-
-$error = '';
-$requires_2fa = false;
-$success_message = '';
-
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $db = new Database();
-    $conn = $db->connect();
+    $conn = require_once '../../includes/db_connect.php';
     $user = new User($conn);
 
     if (isset($_POST['email']) && isset($_POST['password'])) {
         $result = $user->login($_POST['email'], $_POST['password']);
 
         if ($result) {
-            if (isset($result['requires_2fa']) && $result['requires_2fa']) {
-                $requires_2fa = true;
-                $user_id = $result['user_id'];
-                $code = $user->generateVerificationCode($user_id);
+            if ($result['two_factor_enabled']) {
+                $code = $user->generateVerificationCode($result['user_id']);
 
                 if ($user->sendVerificationEmail($result['email'], $code)) {
                     $_SESSION['2fa_required'] = true;
-                    $_SESSION['temp_user_id'] = $user_id;
-                    $success_message = 'Verification code sent! Please check your email.';
+                    $_SESSION['temp_user_id'] = $result['user_id'];
+                    $_SESSION['success_message'] = 'Verification code sent! Please check your email.';
                 } else {
-                    $error = 'Failed to send verification code. Please try again or contact support.';
+                    $_SESSION['error_message'] = 'Failed to send verification code. Please try again or contact support.';
                 }
             } else {
+                unset($_SESSION['2fa_required']);
+                unset($_SESSION['temp_user_id']);
                 $_SESSION['user'] = $result;
+                session_regenerate_id(true);
                 header('Location: ' . BASE_URL . '/dashboard.php');
                 exit();
             }
         } else {
-            $error = 'Invalid email or password';
+            $_SESSION['error_message'] = 'Invalid email or password';
         }
     } elseif (isset($_POST['verification_code']) && isset($_SESSION['temp_user_id'])) {
         if ($user->verifyCode($_SESSION['temp_user_id'], $_POST['verification_code'])) {
@@ -50,14 +40,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $stmt = $conn->prepare($sql);
             $stmt->execute([':user_id' => $_SESSION['temp_user_id']]);
             $_SESSION['user'] = $stmt->fetch(PDO::FETCH_ASSOC);
+            session_regenerate_id(true);
             unset($_SESSION['2fa_required']);
             unset($_SESSION['temp_user_id']);
             header('Location: ' . BASE_URL . '/dashboard.php');
             exit();
         } else {
-            $error = 'Invalid or expired verification code';
+            $_SESSION['error_message'] = 'Invalid or expired verification code';
         }
     }
+    header('Location: ' . BASE_URL . '/views/auth/login.php');
+    exit();
 }
 ?>
 
@@ -81,19 +74,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             </div>
 
             <div class="p-8">
-                <?php if (!empty($success)): ?>
-                    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-6">
-                        <?php echo htmlspecialchars($success); ?>
-                    </div>
-                <?php endif; ?>
+                <?php require_once '../../includes/_alerts.php'; ?>
 
-                <?php if ($error): ?>
-                    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6">
-                        <?php echo htmlspecialchars($error); ?>
-                    </div>
-                <?php endif; ?>
-
-                <?php if ($requires_2fa || isset($_SESSION['2fa_required'])): ?>
+                <?php if ($_SESSION['2fa_required']): ?>
                     <form method="POST" class="space-y-4">
                         <div>
                             <label class="block text-gray-700 text-sm font-bold mb-2">Verification Code</label>
@@ -136,6 +119,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             class="w-full bg-red-600 text-white py-3 px-4 rounded-lg hover:bg-red-700 transition-colors">
                             Sign In
                         </button>
+
+                        <div class="text-center text-sm text-gray-600 mt-2">
+                            <a href="<?= BASE_URL ?>/views/auth/forgot-password.php"
+                                class="text-red-600 hover:text-red-800 font-semibold">
+                                Forgot Password?
+                            </a>
+                        </div>
 
                         <div class="text-center text-sm text-gray-600 mt-4">
                             Don't have an account?
