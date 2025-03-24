@@ -129,22 +129,7 @@ $selected_contact = isset($_GET['contact']) ? intval($_GET['contact']) : null;
 $messages = [];
 
 if ($selected_contact) {
-    // Verify this contact is allowed (has previous conversation or came from donation request)
-    $stmt = $conn->prepare("
-        SELECT 1 FROM Message 
-        WHERE (sender_id = ? AND receiver_id = ?) 
-           OR (sender_id = ? AND receiver_id = ?)
-        LIMIT 1
-    ");
-    $stmt->execute([$user['user_id'], $selected_contact, $selected_contact, $user['user_id']]);
-    $conversation_exists = $stmt->fetch();
-
-    // If no existing conversation, check if there's a valid donation request link
-    if (!$conversation_exists && (!isset($_GET['request_id']) || !verify_donation_request($_GET['request_id'], $selected_contact))) {
-        header('Location: ' . BASE_URL . '/messages.php');
-        exit();
-    }
-
+    // Remove the conversation existence check and donation request validation
     // Get messages for this conversation
     $stmt = $conn->prepare("
         SELECT m.*, 
