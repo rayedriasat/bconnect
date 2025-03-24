@@ -325,4 +325,23 @@ class User
             return false;
         }
     }
+
+    // Add these methods to reduce duplicate queries
+    public function emailExists($email) {
+        $stmt = $this->db->prepare("SELECT user_id FROM Users WHERE email = ?");
+        $stmt->execute([$email]);
+        return $stmt->rowCount() > 0;
+    }
+    
+    public function phoneExists($phone) {
+        $stmt = $this->db->prepare("SELECT user_id FROM Users WHERE phone_number = ?");
+        $stmt->execute([$phone]);
+        return $stmt->rowCount() > 0;
+    }
+    
+    public function getByEmail($email) {
+        $stmt = $this->db->prepare("SELECT * FROM Users WHERE email = ?");
+        $stmt->execute([$email]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
 }
