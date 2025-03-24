@@ -1,29 +1,37 @@
 <?php
-require_once '../../config/database.php';
+session_start();
+
 require_once '../../classes/User.php';
+require_once '../../Core/functs.php';
+$success = getFlashMessage('success');
+$error = getFlashMessage('error');
+
+define('BASE_URL', '/bconnect');
 
 $token = $_GET['token'] ?? '';
-$error = '';
-$success = false;
 
-$db = new Database();
-$conn = $db->connect();
+$conn = require_once '../../includes/db_connect.php';
 $user = new User($conn);
 
+$result = $user->verifyPasswordReset($token);
 // Verify token validity
-if (!$user->verifyPasswordReset($token)) {
+if (!$result) {
     $error = 'Invalid or expired reset token';
 }
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && !$error) {
     if ($_POST['password'] !== $_POST['password_confirm']) {
-        $error = 'Passwords do not match';
+        $_SESSION['error_message'] = 'Passwords do not match';
     } else {
         if ($user->resetPassword($token, $_POST['password'])) {
-            $success = true;
+            $_SESSION['success_message'] = 'Password has been reset successfully';
+            header('Location: ' . BASE_URL . '/views/auth/login.php');
+            exit();
         } else {
-            $error = 'Password reset failed';
+            $_SESSION['error_message'] = 'Password reset failed';
         }
+        header('Location: ' . BASE_URL . '/views/auth/reset-password.php?token=' . $token);
+        exit();
     }
 }
 ?>

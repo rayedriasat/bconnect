@@ -1,13 +1,10 @@
 <?php
 session_start();
-if (isset($_SESSION['success_message'])) {
-    $success = $_SESSION['success_message'];
-    unset($_SESSION['success_message']);
-} else {
-    $success = '';
-}
-require_once '../../config/database.php';
+
 require_once '../../classes/User.php';
+require_once '../../Core/functs.php';
+$success = getFlashMessage('success');
+$error = getFlashMessage('error');
 
 define('BASE_URL', '/bconnect');
 
@@ -15,11 +12,9 @@ $name = '';
 $email = '';
 $phone = '';
 $password = '';
-$error = '';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $db = new Database();
-    $conn = $db->connect();
+    $conn = require_once '../../includes/db_connect.php';
     $user = new User($conn);
 
     $name = trim($_POST['name']);
@@ -27,37 +22,35 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $phone = trim($_POST['phone']);
     $password = $_POST['password'];
     if (empty($name) || empty($email) || empty($phone) || empty($password)) {
-        $error = 'All fields are required';
+        $_SESSION['error_message'] = 'All fields are required';
     }
     // Then validate phone format
     elseif (!preg_match('/^01\d{9}$/', $phone)) {
-        $error = 'Phone must be 11 digits starting with 01 (e.g. 01777158099)';
+        $_SESSION['error_message'] = 'Phone must be 11 digits starting with 01 (e.g. 01777158099)';
     } else {
         // Check for existing email or phone
         $stmt = $conn->prepare("SELECT email, phone_number FROM Users WHERE email = ? OR phone_number = ?");
         $stmt->execute([$email, $phone]);
-        
+
         if ($stmt->rowCount() > 0) {
             $existing = $stmt->fetch(PDO::FETCH_ASSOC);
             if ($existing['email'] === $email) {
-                $error = 'Email is already registered';
+                $_SESSION['error_message'] = 'Email is already registered';
             } else {
-                $error = 'Phone number is already registered';
+                $_SESSION['error_message'] = 'Phone number is already registered';
             }
         } else {
             $result = $user->register($name, $email, $phone, $password);
 
             if ($result) {
-                // Set success message in session
-                session_start();
                 $_SESSION['success_message'] = 'Registration successful! Please login with your credentials.';
-                header('Location: ' . BASE_URL . '/views/auth/login.php');
-                exit();
             } else {
-                $error = 'Registration failed due to server error';
+                $_SESSION['error_message'] = 'Registration failed due to server error';
             }
         }
     }
+    header('Location: ' . BASE_URL . '/views/auth/register.php');
+    exit();
 }
 ?>
 
@@ -81,17 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             </div>
 
             <div class="p-8">
-                <?php if (!empty($success)): ?>
-                    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-6">
-                        <?php echo htmlspecialchars($success); ?>
-                    </div>
-                <?php endif; ?>
-
-                <?php if ($error): ?>
-                    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6">
-                        <?php echo htmlspecialchars($error); ?>
-                    </div>
-                <?php endif; ?>
+                <?php require_once '../../includes/_alerts.php'; ?>
 
                 <form method="POST" class="space-y-6">
                     <div>
