@@ -1,6 +1,5 @@
 <?php
 session_start();
-require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../classes/User.php';
 
 define('BASE_URL', '/bconnect');
@@ -12,8 +11,7 @@ if (!isset($_SESSION['user'])) {
 }
 
 $user = $_SESSION['user'];
-$db = new Database();
-$conn = $db->connect();
+$conn = require_once __DIR__ . '/../includes/db_connect.php';
 
 // Check if user is a donor
 $stmt = $conn->prepare("SELECT * FROM Donor WHERE user_id = ?");
