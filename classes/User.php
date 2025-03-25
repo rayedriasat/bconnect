@@ -19,8 +19,8 @@ class User
     {
         $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-        $sql = "INSERT INTO Users (name, email, phone_number, password) 
-                VALUES (:name, :email, :phone, :password)";
+        $sql = "INSERT INTO Users (name, email, phone_number, password_hash) 
+                VALUES (:name, :email, :phone, :password_hash)";
 
         try {
             $stmt = $this->db->prepare($sql);
@@ -28,7 +28,7 @@ class User
                 ':name' => $name,
                 ':email' => $email,
                 ':phone' => $phone,
-                ':password' => $hashed_password
+                ':password_hash' => $hashed_password
             ]);
             return $this->db->lastInsertId();
         } catch (PDOException $e) {
@@ -43,7 +43,7 @@ class User
         $stmt->execute([':email' => $email]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if ($user && password_verify($password, $user['password'])) {
+        if ($user && password_verify($password, $user['password_hash'])) {
             return $user;
         }
         return false;
@@ -164,10 +164,10 @@ class User
             $this->db->beginTransaction();
 
             // Update password
-            $sql = "UPDATE Users SET password = :password WHERE user_id = :user_id";
+            $sql = "UPDATE Users SET password_hash = :password_hash WHERE user_id = :user_id";
             $stmt = $this->db->prepare($sql);
             $stmt->execute([
-                ':password' => $hashed_password,
+                ':password_hash' => $hashed_password,
                 ':user_id' => $userId
             ]);
 
@@ -268,8 +268,8 @@ class User
             $mail->addAddress($email);
             $mail->isHTML(true);
             $mail->Subject = 'Reset Your BloodConnect Password';
-
-            $reset_link = 'http://localhost/bconnect/views/auth/reset-password.php?token=' . $token;
+            $user_id = $this->getByEmail($email);
+            $reset_link = 'http://localhost/bconnect/views/auth/reset-password.php?token=' . $token . '&user_id=' . $user_id['user_id'];
 
             $mail->Body = "
             <html>
