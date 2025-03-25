@@ -1,7 +1,7 @@
 <?php
-require_once __DIR__ . '/../src/PHPMailer.php';
-require_once __DIR__ . '/../src/SMTP.php';
-require_once __DIR__ . '/../src/Exception.php';
+require_once __DIR__ . '/../phpmailer_src/PHPMailer.php';
+require_once __DIR__ . '/../phpmailer_src/SMTP.php';
+require_once __DIR__ . '/../phpmailer_src/Exception.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
@@ -134,25 +134,26 @@ class User
         }
     }
 
-    public function verifyPasswordReset($token)
+    public function verifyPasswordReset($userId, $token)
     {
         $sql = "SELECT * FROM PasswordResets 
-                WHERE token = :token 
+                WHERE user_id = :user_id 
+                AND token = :token 
                 AND is_used = FALSE 
                 AND expires_at > NOW()";
 
         try {
             $stmt = $this->db->prepare($sql);
-            $stmt->execute([':token' => $token]);
+            $stmt->execute([':user_id' => $userId, ':token' => $token]);
             return $stmt->fetch(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
             return false;
         }
     }
 
-    public function resetPassword($token, $newPassword)
+    public function resetPassword($userId, $token, $newPassword)
     {
-        $userData = $this->verifyPasswordReset($token);
+        $userData = $this->verifyPasswordReset($userId, $token);
         if (!$userData) {
             return false;
         }
@@ -167,7 +168,7 @@ class User
             $stmt = $this->db->prepare($sql);
             $stmt->execute([
                 ':password' => $hashed_password,
-                ':user_id' => $userData['user_id']
+                ':user_id' => $userId
             ]);
 
             // Mark token as used
@@ -185,10 +186,6 @@ class User
 
     public function sendVerificationEmail($email, $code)
     {
-        require_once __DIR__ . '/../src/PHPMailer.php';
-        require_once __DIR__ . '/../src/SMTP.php';
-        require_once __DIR__ . '/../src/Exception.php';
-
         $mail = new PHPMailer(true);
 
         try {
