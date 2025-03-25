@@ -1,10 +1,13 @@
 <?php
 session_start();
+
 require_once '../../classes/User.php';
 require_once '../../Core/functs.php';
 $success = getFlashMessage('success');
 $error = getFlashMessage('error');
+
 define('BASE_URL', '/bconnect');
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $conn = require_once '../../includes/db_connect.php';
     $user = new User($conn);
@@ -76,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <div class="p-8">
                 <?php require_once '../../includes/_alerts.php'; ?>
 
-                <?php if ($_SESSION['2fa_required']): ?>
+                <?php if ($_SESSION['2fa_required'] ?? false): ?>
                     <form method="POST" class="space-y-4">
                         <div>
                             <label class="block text-gray-700 text-sm font-bold mb-2">Verification Code</label>
