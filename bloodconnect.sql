@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 21, 2025 at 07:13 PM
+-- Generation Time: Mar 25, 2025 at 05:32 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -20,6 +20,8 @@ SET time_zone = "+00:00";
 --
 -- Database: `bloodconnect`
 --
+CREATE DATABASE IF NOT EXISTS `bloodconnect` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+USE `bloodconnect`;
 
 -- --------------------------------------------------------
 
@@ -27,6 +29,7 @@ SET time_zone = "+00:00";
 -- Table structure for table `activitylog`
 --
 
+DROP TABLE IF EXISTS `activitylog`;
 CREATE TABLE `activitylog` (
   `log_id` int(11) NOT NULL,
   `admin_id` int(11) NOT NULL,
@@ -40,38 +43,11 @@ CREATE TABLE `activitylog` (
 -- Table structure for table `admin`
 --
 
+DROP TABLE IF EXISTS `admin`;
 CREATE TABLE `admin` (
   `admin_id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `admin`
---
-
-INSERT INTO `admin` (`admin_id`, `user_id`) VALUES
-(1, 1);
-
--- --------------------------------------------------------
-
---
--- Table structure for table `appointment`
---
-
-CREATE TABLE `appointment` (
-  `appointment_id` int(11) NOT NULL,
-  `donor_id` int(11) NOT NULL,
-  `hospital_id` int(11) NOT NULL,
-  `scheduled_time` datetime NOT NULL,
-  `status` enum('pending','confirmed','completed') DEFAULT 'pending'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `appointment`
---
-
-INSERT INTO `appointment` (`appointment_id`, `donor_id`, `hospital_id`, `scheduled_time`, `status`) VALUES
-(1, 1, 6, '2025-03-22 10:00:00', 'pending');
 
 -- --------------------------------------------------------
 
@@ -79,6 +55,7 @@ INSERT INTO `appointment` (`appointment_id`, `donor_id`, `hospital_id`, `schedul
 -- Table structure for table `bloodinventory`
 --
 
+DROP TABLE IF EXISTS `bloodinventory`;
 CREATE TABLE `bloodinventory` (
   `inventory_id` int(11) NOT NULL,
   `hospital_id` int(11) NOT NULL,
@@ -87,56 +64,34 @@ CREATE TABLE `bloodinventory` (
   `last_updated` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `bloodinventory`
---
-
-INSERT INTO `bloodinventory` (`inventory_id`, `hospital_id`, `blood_type`, `quantity`, `last_updated`) VALUES
-(1, 2, 'O-', 5, '2025-03-21 21:13:47');
-
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `bloodtypecompatibility`
 --
 
+DROP TABLE IF EXISTS `bloodtypecompatibility`;
 CREATE TABLE `bloodtypecompatibility` (
   `donor_type` enum('O-','O+','A-','A+','B-','B+','AB-','AB+') NOT NULL,
   `recipient_type` enum('O-','O+','A-','A+','B-','B+','AB-','AB+') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+-- --------------------------------------------------------
+
 --
--- Dumping data for table `bloodtypecompatibility`
+-- Table structure for table `donationappointment`
 --
 
-INSERT INTO `bloodtypecompatibility` (`donor_type`, `recipient_type`) VALUES
-('O-', 'O-'),
-('O-', 'O+'),
-('O-', 'A-'),
-('O-', 'A+'),
-('O-', 'B-'),
-('O-', 'B+'),
-('O-', 'AB-'),
-('O-', 'AB+'),
-('O+', 'O+'),
-('O+', 'A+'),
-('O+', 'B+'),
-('O+', 'AB+'),
-('A-', 'A-'),
-('A-', 'A+'),
-('A-', 'AB-'),
-('A-', 'AB+'),
-('A+', 'A+'),
-('A+', 'AB+'),
-('B-', 'B-'),
-('B-', 'B+'),
-('B-', 'AB-'),
-('B-', 'AB+'),
-('B+', 'B+'),
-('B+', 'AB+'),
-('AB-', 'AB-'),
-('AB-', 'AB+'),
-('AB+', 'AB+');
+DROP TABLE IF EXISTS `donationappointment`;
+CREATE TABLE `donationappointment` (
+  `appointment_id` int(11) NOT NULL,
+  `request_id` int(11) NOT NULL,
+  `donor_id` int(11) NOT NULL,
+  `scheduled_time` datetime NOT NULL,
+  `status` enum('pending','confirmed','completed','cancelled') DEFAULT 'pending',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -144,6 +99,7 @@ INSERT INTO `bloodtypecompatibility` (`donor_type`, `recipient_type`) VALUES
 -- Table structure for table `donationrequest`
 --
 
+DROP TABLE IF EXISTS `donationrequest`;
 CREATE TABLE `donationrequest` (
   `request_id` int(11) NOT NULL,
   `hospital_id` int(11) NOT NULL,
@@ -162,6 +118,7 @@ CREATE TABLE `donationrequest` (
 -- Table structure for table `donationrequesthistory`
 --
 
+DROP TABLE IF EXISTS `donationrequesthistory`;
 CREATE TABLE `donationrequesthistory` (
   `history_id` int(11) NOT NULL,
   `request_id` int(11) NOT NULL,
@@ -178,20 +135,13 @@ CREATE TABLE `donationrequesthistory` (
   `status` enum('fulfilled','cancelled') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `donationrequesthistory`
---
-
-INSERT INTO `donationrequesthistory` (`history_id`, `request_id`, `hospital_id`, `requester_id`, `blood_type`, `quantity`, `urgency`, `contact_person`, `contact_phone`, `created_at`, `fulfilled_at`, `fulfilled_by`, `status`) VALUES
-(1, 1, 5, 1, 'A+', 2, 'high', 'Rayed Riasat', '01789176264', '2025-03-21 20:01:44', '2025-03-21 20:46:06', 3, 'fulfilled'),
-(2, 2, 6, 1, 'A+', 5, 'low', 'Hasan Shakir', '01789176264', '2025-03-21 23:49:09', '2025-03-22 00:08:07', 1, 'fulfilled');
-
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `donor`
 --
 
+DROP TABLE IF EXISTS `donor`;
 CREATE TABLE `donor` (
   `donor_id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
@@ -206,21 +156,13 @@ CREATE TABLE `donor` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `donor`
---
-
-INSERT INTO `donor` (`donor_id`, `user_id`, `blood_type`, `date_of_birth`, `weight`, `has_medical_condition`, `medical_notes`, `last_donation_date`, `is_available`, `created_at`, `updated_at`) VALUES
-(1, 1, 'A+', '2002-01-01', 62.00, 0, 'I guess no notes.', NULL, 1, '2025-03-21 10:14:01', '2025-03-21 17:47:51'),
-(2, 2, 'B+', '2001-01-01', 71.00, 0, 'Nah', NULL, 1, '2025-03-21 14:03:08', '2025-03-21 14:03:08'),
-(3, 3, 'A+', '2004-01-02', 75.20, 0, 'Fine', NULL, 1, '2025-03-21 14:27:48', '2025-03-21 15:04:02');
-
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `hospital`
 --
 
+DROP TABLE IF EXISTS `hospital`;
 CREATE TABLE `hospital` (
   `hospital_id` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
@@ -229,27 +171,13 @@ CREATE TABLE `hospital` (
   `phone_number` varchar(20) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `hospital`
---
-
-INSERT INTO `hospital` (`hospital_id`, `name`, `address`, `email`, `phone_number`) VALUES
-(1, 'Shahid Suhrawardy Hospital', 'Ser-e-Banglanagar, Collegegate, Dhaka', 'info@suhrawardyhospital.gov.bd', '9122560'),
-(2, 'Ad-Din Hospital', 'Moghbazar, Dhaka', 'contact@ad-dinhospital.com', '9353391'),
-(3, 'Ahmed Medical Centre Ltd', 'House # 71, Road # 15-A (New), Dhanmondi C/A, Dhaka', 'info@ahmedmedicalcentre.com', '8113628'),
-(5, 'Al Anaiet Adhunik Hospital', 'House # 36, Road # 3, Dhanmondi, Dhaka', 'contact@alanaiethospital.com', '8631619'),
-(6, 'Al-Helal Specialist Hospital', '150, Rokeya Sarani, Senpara Parbata, Mirpur-10, Dhaka', 'info@alhelalhospital.com', '9006820'),
-(7, 'United Hospital Limited', 'Plot 15, Road 71, Gulshan, Dhaka 1212', 'info@uhlbd.com', '+8801914001234'),
-(8, 'Evercare Hospital Dhaka', 'Plot # 81, Block E, Bashundhara R/A, Dhaka', 'info@evercarebd.com', '10678'),
-(9, 'Square Hospitals Ltd.', '18/F, Bir Uttam Qazi Nuruzzaman Sarak, West Panthapath, Dhaka 1205', 'info@squarehospital.com', '10616'),
-(10, 'BIRDEM General Hospital', '122 Kazi Nazrul Islam Avenue, Shahbag, Dhaka', 'info@birdembd.org', '9661551');
-
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `location`
 --
 
+DROP TABLE IF EXISTS `location`;
 CREATE TABLE `location` (
   `location_id` int(11) NOT NULL,
   `user_id` int(11) DEFAULT NULL,
@@ -266,6 +194,7 @@ CREATE TABLE `location` (
 -- Table structure for table `matches`
 --
 
+DROP TABLE IF EXISTS `matches`;
 CREATE TABLE `matches` (
   `match_id` int(11) NOT NULL,
   `request_id` int(11) NOT NULL,
@@ -279,6 +208,7 @@ CREATE TABLE `matches` (
 -- Table structure for table `message`
 --
 
+DROP TABLE IF EXISTS `message`;
 CREATE TABLE `message` (
   `message_id` int(11) NOT NULL,
   `sender_id` int(11) NOT NULL,
@@ -287,34 +217,13 @@ CREATE TABLE `message` (
   `sent_at` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `message`
---
-
-INSERT INTO `message` (`message_id`, `sender_id`, `receiver_id`, `content`, `sent_at`) VALUES
-(1, 1, 2, 'Hello Rcube', '2025-03-21 17:19:37'),
-(2, 1, 2, 'What Are u doing?', '2025-03-21 17:19:56'),
-(3, 1, 2, 'Hey there', '2025-03-21 17:20:08'),
-(4, 2, 1, 'Hello Rayed', '2025-03-21 17:37:33'),
-(5, 2, 1, 'What\'s up', '2025-03-21 17:37:40'),
-(6, 2, 1, 'Iftar time', '2025-03-21 17:37:45'),
-(7, 1, 2, 'Iftar time', '2025-03-21 17:38:46'),
-(8, 3, 1, 'I can donate A+ to Al Anaiet Adhunik Hospital', '2025-03-21 20:41:06'),
-(9, 3, 1, 'hello', '2025-03-21 20:41:16'),
-(10, 3, 1, 'I can donate A+ to Al Anaiet Adhunik Hospital', '2025-03-21 20:45:49'),
-(11, 3, 1, 'I have fulfilled this blood donation request.', '2025-03-21 20:46:06'),
-(12, 1, 1, 'I can donate A+ to Al-Helal Specialist Hospital', '2025-03-21 23:49:24'),
-(13, 1, 2, 'Hi', '2025-03-22 00:07:37'),
-(14, 1, 3, 'Yo', '2025-03-22 00:07:45'),
-(15, 1, 1, 'I have fulfilled this blood donation request.', '2025-03-22 00:08:07'),
-(16, 3, 1, 'Assalamualaikum', '2025-03-22 00:11:43');
-
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `notification`
 --
 
+DROP TABLE IF EXISTS `notification`;
 CREATE TABLE `notification` (
   `notification_id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
@@ -329,6 +238,7 @@ CREATE TABLE `notification` (
 -- Table structure for table `passwordresets`
 --
 
+DROP TABLE IF EXISTS `passwordresets`;
 CREATE TABLE `passwordresets` (
   `id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
@@ -344,6 +254,7 @@ CREATE TABLE `passwordresets` (
 -- Table structure for table `reminder`
 --
 
+DROP TABLE IF EXISTS `reminder`;
 CREATE TABLE `reminder` (
   `reminder_id` int(11) NOT NULL,
   `appointment_id` int(11) NOT NULL,
@@ -357,24 +268,16 @@ CREATE TABLE `reminder` (
 -- Table structure for table `users`
 --
 
+DROP TABLE IF EXISTS `users`;
 CREATE TABLE `users` (
   `user_id` int(11) NOT NULL,
   `name` varchar(255) NOT NULL DEFAULT '',
   `email` varchar(255) NOT NULL,
   `phone_number` varchar(20) NOT NULL,
-  `password` varchar(255) NOT NULL,
+  `password_hash` varchar(255) NOT NULL,
   `two_factor_enabled` tinyint(1) DEFAULT 0,
   `phone_verified` tinyint(1) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `users`
---
-
-INSERT INTO `users` (`user_id`, `name`, `email`, `phone_number`, `password`, `two_factor_enabled`, `phone_verified`) VALUES
-(1, 'Rayed', 'rayedriasat@gmail.com', '01777158099', '$2y$10$mHtQipzYeXdOdiUPmnTWxOyV80elc8x7QJjyX.q26a1tS1r2Lf2BS', 0, 0),
-(2, 'Rcube', 'rcubethe@gmail.com', '01789176264', '$2y$10$b32P6urpyWOATNucEW/feOu81rsw0WqGIySxFuXtJBmpd0tCr6R5u', 0, 0),
-(3, 'Azim', 'azim.tazbee@northsouth.edu', '01515005274', '$2y$10$JdcqMK46JQWr1KF.MteUIO7l4BlpCwguCL2ucrMbSx68.JGSRwQmC', 0, 0);
 
 -- --------------------------------------------------------
 
@@ -382,6 +285,7 @@ INSERT INTO `users` (`user_id`, `name`, `email`, `phone_number`, `password`, `tw
 -- Table structure for table `verificationcodes`
 --
 
+DROP TABLE IF EXISTS `verificationcodes`;
 CREATE TABLE `verificationcodes` (
   `id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
@@ -410,14 +314,6 @@ ALTER TABLE `admin`
   ADD KEY `user_id` (`user_id`);
 
 --
--- Indexes for table `appointment`
---
-ALTER TABLE `appointment`
-  ADD PRIMARY KEY (`appointment_id`),
-  ADD KEY `donor_id` (`donor_id`),
-  ADD KEY `hospital_id` (`hospital_id`);
-
---
 -- Indexes for table `bloodinventory`
 --
 ALTER TABLE `bloodinventory`
@@ -429,6 +325,14 @@ ALTER TABLE `bloodinventory`
 --
 ALTER TABLE `bloodtypecompatibility`
   ADD PRIMARY KEY (`donor_type`,`recipient_type`);
+
+--
+-- Indexes for table `donationappointment`
+--
+ALTER TABLE `donationappointment`
+  ADD PRIMARY KEY (`appointment_id`),
+  ADD KEY `request_id` (`request_id`),
+  ADD KEY `donor_id` (`donor_id`);
 
 --
 -- Indexes for table `donationrequest`
@@ -536,43 +440,43 @@ ALTER TABLE `activitylog`
 -- AUTO_INCREMENT for table `admin`
 --
 ALTER TABLE `admin`
-  MODIFY `admin_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
-
---
--- AUTO_INCREMENT for table `appointment`
---
-ALTER TABLE `appointment`
-  MODIFY `appointment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `admin_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `bloodinventory`
 --
 ALTER TABLE `bloodinventory`
-  MODIFY `inventory_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `inventory_id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `donationappointment`
+--
+ALTER TABLE `donationappointment`
+  MODIFY `appointment_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `donationrequest`
 --
 ALTER TABLE `donationrequest`
-  MODIFY `request_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `request_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `donationrequesthistory`
 --
 ALTER TABLE `donationrequesthistory`
-  MODIFY `history_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `history_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `donor`
 --
 ALTER TABLE `donor`
-  MODIFY `donor_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `donor_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `hospital`
 --
 ALTER TABLE `hospital`
-  MODIFY `hospital_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `hospital_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `location`
@@ -590,7 +494,7 @@ ALTER TABLE `matches`
 -- AUTO_INCREMENT for table `message`
 --
 ALTER TABLE `message`
-  MODIFY `message_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `message_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `notification`
@@ -614,7 +518,7 @@ ALTER TABLE `reminder`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `verificationcodes`
@@ -630,33 +534,33 @@ ALTER TABLE `verificationcodes`
 -- Constraints for table `activitylog`
 --
 ALTER TABLE `activitylog`
-  ADD CONSTRAINT `activitylog_ibfk_1` FOREIGN KEY (`admin_id`) REFERENCES `admin` (`admin_id`);
+  ADD CONSTRAINT `activitylog_ibfk_1` FOREIGN KEY (`admin_id`) REFERENCES `admin` (`admin_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `admin`
 --
 ALTER TABLE `admin`
-  ADD CONSTRAINT `admin_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`);
-
---
--- Constraints for table `appointment`
---
-ALTER TABLE `appointment`
-  ADD CONSTRAINT `appointment_ibfk_1` FOREIGN KEY (`donor_id`) REFERENCES `donor` (`donor_id`),
-  ADD CONSTRAINT `appointment_ibfk_2` FOREIGN KEY (`hospital_id`) REFERENCES `hospital` (`hospital_id`);
+  ADD CONSTRAINT `admin_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `bloodinventory`
 --
 ALTER TABLE `bloodinventory`
-  ADD CONSTRAINT `bloodinventory_ibfk_1` FOREIGN KEY (`hospital_id`) REFERENCES `hospital` (`hospital_id`);
+  ADD CONSTRAINT `bloodinventory_ibfk_1` FOREIGN KEY (`hospital_id`) REFERENCES `hospital` (`hospital_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `donationappointment`
+--
+ALTER TABLE `donationappointment`
+  ADD CONSTRAINT `donationappointment_ibfk_1` FOREIGN KEY (`request_id`) REFERENCES `donationrequest` (`request_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `donationappointment_ibfk_2` FOREIGN KEY (`donor_id`) REFERENCES `donor` (`donor_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `donationrequest`
 --
 ALTER TABLE `donationrequest`
-  ADD CONSTRAINT `donationrequest_ibfk_1` FOREIGN KEY (`hospital_id`) REFERENCES `hospital` (`hospital_id`),
-  ADD CONSTRAINT `donationrequest_ibfk_2` FOREIGN KEY (`requester_id`) REFERENCES `users` (`user_id`);
+  ADD CONSTRAINT `donationrequest_ibfk_1` FOREIGN KEY (`hospital_id`) REFERENCES `hospital` (`hospital_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `donationrequest_ibfk_2` FOREIGN KEY (`requester_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `donationrequesthistory`
@@ -670,52 +574,52 @@ ALTER TABLE `donationrequesthistory`
 -- Constraints for table `donor`
 --
 ALTER TABLE `donor`
-  ADD CONSTRAINT `donor_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`);
+  ADD CONSTRAINT `donor_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `location`
 --
 ALTER TABLE `location`
-  ADD CONSTRAINT `location_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
-  ADD CONSTRAINT `location_ibfk_2` FOREIGN KEY (`hospital_id`) REFERENCES `hospital` (`hospital_id`);
+  ADD CONSTRAINT `location_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `location_ibfk_2` FOREIGN KEY (`hospital_id`) REFERENCES `hospital` (`hospital_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `matches`
 --
 ALTER TABLE `matches`
-  ADD CONSTRAINT `matches_ibfk_1` FOREIGN KEY (`request_id`) REFERENCES `donationrequest` (`request_id`),
-  ADD CONSTRAINT `matches_ibfk_2` FOREIGN KEY (`donor_id`) REFERENCES `donor` (`donor_id`);
+  ADD CONSTRAINT `matches_ibfk_1` FOREIGN KEY (`request_id`) REFERENCES `donationrequest` (`request_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `matches_ibfk_2` FOREIGN KEY (`donor_id`) REFERENCES `donor` (`donor_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `message`
 --
 ALTER TABLE `message`
-  ADD CONSTRAINT `message_ibfk_1` FOREIGN KEY (`sender_id`) REFERENCES `users` (`user_id`),
-  ADD CONSTRAINT `message_ibfk_2` FOREIGN KEY (`receiver_id`) REFERENCES `users` (`user_id`);
+  ADD CONSTRAINT `message_ibfk_1` FOREIGN KEY (`sender_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `message_ibfk_2` FOREIGN KEY (`receiver_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `notification`
 --
 ALTER TABLE `notification`
-  ADD CONSTRAINT `notification_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`);
+  ADD CONSTRAINT `notification_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `passwordresets`
 --
 ALTER TABLE `passwordresets`
-  ADD CONSTRAINT `passwordresets_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`);
+  ADD CONSTRAINT `passwordresets_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `reminder`
 --
 ALTER TABLE `reminder`
-  ADD CONSTRAINT `reminder_ibfk_1` FOREIGN KEY (`appointment_id`) REFERENCES `appointment` (`appointment_id`);
+  ADD CONSTRAINT `reminder_ibfk_1` FOREIGN KEY (`appointment_id`) REFERENCES `donationappointment` (`appointment_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `verificationcodes`
 --
 ALTER TABLE `verificationcodes`
-  ADD CONSTRAINT `verificationcodes_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`);
+  ADD CONSTRAINT `verificationcodes_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

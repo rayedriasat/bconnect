@@ -1,5 +1,5 @@
 <?php
-require_once '../../includes/auth_middleware.php';
+require_once '../../../includes/auth_middleware.php';
 
 // Redirect if not an admin
 if (!$isAdmin) {

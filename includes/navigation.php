@@ -17,8 +17,8 @@ if (!isset($user)) {
                     <?php endif; ?>
                     <a href="<?php echo BASE_URL; ?>/messages.php" class="text-gray-700 hover:text-red-600">Messages</a>
                     <?php if ($isAdmin): ?>
-                        <a href="<?php echo BASE_URL; ?>/admin/dashboard.php" class="text-gray-700 hover:text-red-600">Admin Panel</a>
-                        <a href="<?php echo BASE_URL; ?>/admin/manage-inventory.php" class="text-gray-700 hover:text-red-600">Manage Inventory</a>
+                        <a href="<?php echo BASE_URL; ?>/views/admin/dashboard.php" class="text-gray-700 hover:text-red-600">Admin Panel</a>
+                        <a href="<?php echo BASE_URL; ?>/views/admin/manage-inventory.php" class="text-gray-700 hover:text-red-600">Manage Inventory</a>
                     <?php endif; ?>
                     <?php if ($isDonor): ?>
                         <a href="<?php echo BASE_URL; ?>/donation-requests.php" class="text-gray-700 hover:text-red-600">Donation Requests</a>
