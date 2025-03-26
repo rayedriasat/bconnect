@@ -8,22 +8,22 @@ if (!isset($user)) {
     <div class="max-w-7xl mx-auto px-4">
         <div class="flex justify-between h-16">
             <div class="flex items-center space-x-8">
-                <a href="<?php echo BASE_URL; ?>/dashboard.php" class="text-2xl font-semibold text-red-600">BloodConnect</a>
+                <a href="<?php echo BASE_URL; ?>/views/dashboard/index.php" class="text-2xl font-semibold text-red-600">BloodConnect</a>
                 <div class="hidden md:flex items-center space-x-4">
-                    <a href="<?php echo BASE_URL; ?>/profile/index.php" class="text-gray-700 hover:text-red-600">My Profile</a>
+                    <a href="<?php echo BASE_URL; ?>/views/profile/index.php" class="text-gray-700 hover:text-red-600">My Profile</a>
                     <?php if ($isDonor): ?>
-                        <a href="<?php echo BASE_URL; ?>/appointments.php" class="text-gray-700 hover:text-red-600">Appointments</a>
-                        <a href="<?php echo BASE_URL; ?>/donation-history.php" class="text-gray-700 hover:text-red-600">Donation History</a>
+                        <a href="<?php echo BASE_URL; ?>/views/appointments/index.php" class="text-gray-700 hover:text-red-600">Appointments</a>
+                        <a href="<?php echo BASE_URL; ?>/views/donor/donation-history.php" class="text-gray-700 hover:text-red-600">Donation History</a>
                     <?php endif; ?>
-                    <a href="<?php echo BASE_URL; ?>/messages.php" class="text-gray-700 hover:text-red-600">Messages</a>
+                    <a href="<?php echo BASE_URL; ?>/views/messages/index.php" class="text-gray-700 hover:text-red-600">Messages</a>
                     <?php if ($isAdmin): ?>
                         <a href="<?php echo BASE_URL; ?>/views/admin/dashboard.php" class="text-gray-700 hover:text-red-600">Admin Panel</a>
                         <a href="<?php echo BASE_URL; ?>/views/admin/manage-inventory.php" class="text-gray-700 hover:text-red-600">Manage Inventory</a>
                     <?php endif; ?>
                     <?php if ($isDonor): ?>
-                        <a href="<?php echo BASE_URL; ?>/donation-requests.php" class="text-gray-700 hover:text-red-600">Donation Requests</a>
+                        <a href="<?php echo BASE_URL; ?>/views/requests/index.php" class="text-gray-700 hover:text-red-600">Donation Requests</a>
                     <?php endif; ?>
-                    <a href="<?php echo BASE_URL; ?>/request-donation.php" class="text-gray-700 hover:text-red-600">Request Donation</a>
+                    <a href="<?php echo BASE_URL; ?>/views/requests/create.php" class="text-gray-700 hover:text-red-600">Request Donation</a>
                 </div>
             </div>
             <div class="flex items-center space-x-4">

@@ -1,5 +1,5 @@
 <?php
-require_once 'includes/auth_middleware.php';
+require_once '../../includes/auth_middleware.php';
 
 // Get donor details if user is a donor
 $donor = null;
@@ -53,7 +53,7 @@ $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
 </head>
 
 <body class="bg-gray-100">
-    <?php require_once 'includes/navigation.php'; ?>
+    <?php require_once __DIR__ . '/../../includes/navigation.php'; ?>
 
     <div class="max-w-7xl mx-auto px-4 py-8">
         <?php if (isset($_GET['success'])): ?>
@@ -121,12 +121,12 @@ $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             </div>
                             <div class="flex justify-end border-t pt-4 mt-4">
                                 <?php if ($isDonor): ?>
-                                    <a href="<?php echo BASE_URL; ?>/schedule-appointment.php?request_id=<?php echo $request['request_id']; ?>"
+                                    <a href="<?php echo BASE_URL; ?>/views/appointments/schedule.php?request_id=<?php echo $request['request_id']; ?>"
                                         class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
                                         Schedule Appointment
                                     </a>
                                 <?php else: ?>
-                                    <form method="POST" action="<?php echo BASE_URL; ?>/cancel-request.php"
+                                    <form method="POST" action="<?php echo BASE_URL; ?>/views/requests/cancel.php"
                                         onsubmit="return confirm('Are you sure you want to cancel this donation request?');">
                                         <input type="hidden" name="request_id" value="<?php echo $request['request_id']; ?>">
                                         <button type="submit" name="cancel_request"

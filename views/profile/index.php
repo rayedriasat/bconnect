@@ -1,5 +1,5 @@
 <?php
-require_once '../includes/auth_middleware.php';
+require_once '../../includes/auth_middleware.php';
 
 $success = '';
 $error = '';
@@ -78,7 +78,7 @@ if ($isDonor) {
 </head>
 
 <body class="bg-gray-100">
-    <?php require_once '../includes/navigation.php'; ?>
+    <?php require_once __DIR__ . '/../../includes/navigation.php'; ?>
 
     <div class="max-w-4xl mx-auto px-4 py-8">
         <div class="bg-white rounded-lg shadow-md p-6">
@@ -164,7 +164,7 @@ if ($isDonor) {
                 </div>
 
                 <div class="flex items-center justify-between pt-4 border-t">
-                    <a href="<?php echo BASE_URL; ?>/profile/change-password.php"
+                    <a href="<?php echo BASE_URL; ?>/views/profile/change-password.php"
                         class="text-blue-600 hover:text-blue-800">
                         Change Password
                     </a>

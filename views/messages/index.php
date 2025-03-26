@@ -1,5 +1,5 @@
 <?php
-require_once 'includes/auth_middleware.php';
+require_once '../../includes/auth_middleware.php';
 
 // Get request details if coming from donation request
 $request_details = null;
@@ -20,7 +20,7 @@ if (isset($_GET['request']) && isset($_GET['auto_message'])) {
         $stmt->execute([$user['user_id'], $_GET['contact'], $auto_message]);
 
         // Redirect to remove auto_message parameter
-        header('Location: ' . BASE_URL . '/messages.php?contact=' . $_GET['contact'] . '&request=' . $_GET['request']);
+        header('Location: ' . BASE_URL . '/views/messages/index.php?contact=' . $_GET['contact'] . '&request=' . $_GET['request']);
         exit();
     }
 }
@@ -71,7 +71,7 @@ if (isset($_POST['fulfill_request']) && isset($_POST['request_id'])) {
             $stmt->execute([$user['user_id'], $_GET['contact'], $confirm_message]);
 
             // Redirect to messages
-            header('Location: ' . BASE_URL . '/messages.php?contact=' . $_GET['contact'] . '&success=1');
+            header('Location: ' . BASE_URL . '/views/messages/index.php?contact=' . $_GET['contact'] . '&success=1');
             exit();
         }
     } catch (Exception $e) {
@@ -117,7 +117,7 @@ if (isset($_POST['new_message'])) {
 
     if ($recipient) {
         // Redirect to the conversation with this user
-        header('Location: ' . BASE_URL . '/messages.php?contact=' . $recipient['user_id']);
+        header('Location: ' . BASE_URL . '/views/messages/index.php?contact=' . $recipient['user_id']);
         exit();
     } else {
         $error = 'User not found';
@@ -159,7 +159,7 @@ if (isset($_POST['send_message']) && $selected_contact) {
         $stmt->execute([$user['user_id'], $selected_contact, $content]);
 
         // Redirect to avoid form resubmission
-        header('Location: ' . BASE_URL . '/messages.php?contact=' . $selected_contact);
+        header('Location: ' . BASE_URL . '/views/messages/index.php?contact=' . $selected_contact);
         exit();
     }
 }
@@ -221,7 +221,7 @@ function verify_donation_request($request_id, $contact_id)
 </head>
 
 <body class="bg-gray-100">
-    <?php require_once 'includes/navigation.php'; ?>
+    <?php require_once __DIR__ . '/../../includes/navigation.php'; ?>
 
     <?php if (isset($_GET['success'])): ?>
         <div class="max-w-7xl mx-auto px-4 py-2">
