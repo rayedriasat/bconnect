@@ -31,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 unset($_SESSION['temp_user_id']);
                 $_SESSION['user'] = $result;
                 session_regenerate_id(true);
-                header('Location: ' . BASE_URL . '/dashboard.php');
+                header('Location: ' . BASE_URL . '/views/dashboard/');
                 exit();
             }
         } else {
@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             session_regenerate_id(true);
             unset($_SESSION['2fa_required']);
             unset($_SESSION['temp_user_id']);
-            header('Location: ' . BASE_URL . '/dashboard.php');
+            header('Location: ' . BASE_URL . '/views/dashboard/');
             exit();
         } else {
             $_SESSION['error_message'] = 'Invalid or expired verification code';

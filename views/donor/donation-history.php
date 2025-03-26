@@ -3,7 +3,7 @@ require_once '../../includes/auth_middleware.php';
 
 // Redirect if not a donor
 if (!$isDonor) {
-    header('Location: ' . BASE_URL . '/dashboard.php');
+    header('Location: ' . BASE_URL . '/views/dashboard/index.php');
     exit();
 }
 
@@ -41,7 +41,7 @@ $donations = $stmt->fetchAll(PDO::FETCH_ASSOC);
 </head>
 
 <body class="bg-gray-100">
-    <?php require_once __DIR__ . '/../../includes/navigation.php'; ?>
+    <?php require_once '../../includes/navigation.php'; ?>
 
     <div class="max-w-7xl mx-auto px-4 py-8">
         <div class="bg-white rounded-lg shadow p-6">
