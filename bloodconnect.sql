@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 25, 2025 at 05:32 PM
+-- Generation Time: Mar 26, 2025 at 05:35 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -271,10 +271,10 @@ CREATE TABLE `reminder` (
 DROP TABLE IF EXISTS `users`;
 CREATE TABLE `users` (
   `user_id` int(11) NOT NULL,
-  `name` varchar(255) NOT NULL DEFAULT '',
-  `email` varchar(255) NOT NULL,
+  `name` varchar(70) NOT NULL,
+  `email` varchar(70) NOT NULL,
   `phone_number` varchar(20) NOT NULL,
-  `password_hash` varchar(255) NOT NULL,
+  `password_hash` varchar(70) NOT NULL,
   `two_factor_enabled` tinyint(1) DEFAULT 0,
   `phone_verified` tinyint(1) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
