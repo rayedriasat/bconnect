@@ -1,5 +1,5 @@
 <?php
-require_once '../includes/auth_middleware.php';
+require_once '../../includes/auth_middleware.php';
 
 // Redirect if not an admin
 if (!$isAdmin) {
@@ -81,7 +81,7 @@ $admins = $stmt->fetchAll(PDO::FETCH_ASSOC);
 </head>
 
 <body class="bg-gray-100">
-    <?php require_once '../includes/navigation.php'; ?>
+    <?php require_once '../../includes/navigation.php'; ?>
 
     <div class="max-w-7xl mx-auto px-4 py-6">
         <div class="bg-white rounded-lg shadow p-6">

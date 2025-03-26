@@ -1,5 +1,5 @@
 <?php
-require_once '../includes/auth_middleware.php';
+require_once '../../includes/auth_middleware.php';
 
 // Redirect if not an admin
 if (!$isAdmin) {
@@ -63,7 +63,7 @@ try {
 </head>
 
 <body class="bg-gray-100">
-    <?php require_once '../includes/navigation.php'; ?>
+    <?php require_once '../../includes/navigation.php'; ?>
 
     <div class="max-w-7xl mx-auto px-4 py-6">
         <h1 class="text-3xl font-bold text-gray-900 mb-8">Admin Dashboard</h1>
@@ -93,17 +93,17 @@ try {
             <div class="bg-white rounded-lg shadow p-6">
                 <h2 class="text-xl font-semibold mb-4">Quick Actions</h2>
                 <div class="grid grid-cols-2 gap-4">
-                    <a href="<?php echo BASE_URL; ?>/admin/manage-hospitals.php"
+                    <a href="<?php echo BASE_URL; ?>/views/admin/manage-hospitals.php"
                         class="bg-blue-100 text-blue-700 p-4 rounded-lg hover:bg-blue-200">
                         <div class="font-semibold">Manage Hospitals</div>
                         <div class="text-sm">Add or remove hospital partners</div>
                     </a>
-                    <a href="<?php echo BASE_URL; ?>/admin/manage-inventory.php"
+                    <a href="<?php echo BASE_URL; ?>/views/admin/manage-inventory.php"
                         class="bg-orange-100 text-orange-700 p-4 rounded-lg hover:bg-orange-200">
                         <div class="font-semibold">Manage Inventory</div>
                         <div class="text-sm">Manage blood inventory levels</div>
                     </a>
-                    <a href="<?php echo BASE_URL; ?>/admin/manage-admins.php"
+                    <a href="<?php echo BASE_URL; ?>/views/admin/manage-admins.php"
                         class="bg-purple-100 text-purple-700 p-4 rounded-lg hover:bg-purple-200">
                         <div class="font-semibold">Manage Admins</div>
                         <div class="text-sm">Control admin access</div>

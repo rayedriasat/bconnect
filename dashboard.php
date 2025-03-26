@@ -165,13 +165,13 @@ $notifications = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <div class="bg-white rounded-lg shadow p-6">
                     <h2 class="text-xl font-semibold mb-4">Admin Actions</h2>
                     <div class="space-y-2">
-                        <a href="<?php echo BASE_URL; ?>/admin/manage-hospitals.php"
+                        <a href="<?php echo BASE_URL; ?>/views/admin/manage-hospitals.php"
                             class="block text-blue-600 hover:text-blue-800">Manage Hospitals</a>
-                        <a href="<?php echo BASE_URL; ?>/admin/manage-admins.php"
+                        <a href="<?php echo BASE_URL; ?>/views/admin/manage-admins.php"
                             class="block text-blue-600 hover:text-blue-800">Manage Administrators</a>
-                        <a href="<?php echo BASE_URL; ?>/admin/manage-users.php"
+                        <a href="<?php echo BASE_URL; ?>/views/admin/manage-users.php"
                             class="block text-blue-600 hover:text-blue-800">Manage Users</a>
-                        <a href="<?php echo BASE_URL; ?>/admin/reports.php"
+                        <a href="<?php echo BASE_URL; ?>/views/admin/reports.php"
                             class="block text-blue-600 hover:text-blue-800">View Reports</a>
                     </div>
                 </div>

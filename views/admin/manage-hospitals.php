@@ -1,5 +1,5 @@
 <?php
-require_once '../includes/auth_middleware.php';
+require_once '../../includes/auth_middleware.php';
 
 // Redirect if not an admin
 if (!$isAdmin) {
@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 
 <body class="bg-gray-100">
-    <?php require_once '../includes/navigation.php'; ?>
+    <?php require_once '../../includes/navigation.php'; ?>
 
     <div class="max-w-7xl mx-auto px-4 py-6">
         <div class="bg-white rounded-lg shadow p-6">
@@ -139,7 +139,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $('#clearSearch').toggleClass('hidden', !searchValue);
 
             // Make AJAX request
-            $.get('<?php echo BASE_URL; ?>/admin/ajax/search-hospitals.php', {
+            $.get('<?php echo BASE_URL; ?>/views/admin/ajax/search-hospitals.php', {
                     search: searchValue,
                     searchBy: searchBy
                 })
