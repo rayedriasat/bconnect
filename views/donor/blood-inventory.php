@@ -1,5 +1,5 @@
 <?php
-require_once 'includes/auth_middleware.php';
+require_once '../../includes/auth_middleware.php';
 
 // Get user's location (if available)
 $user_location = null;
@@ -94,14 +94,14 @@ $inventory = $stmt->fetchAll(PDO::FETCH_ASSOC);
 </head>
 
 <body class="bg-gray-100">
-    <?php require_once 'includes/navigation.php'; ?>
+    <?php require_once '../../includes/navigation.php'; ?>
 
     <div class="max-w-7xl mx-auto px-4 py-8">
         <div class="bg-white rounded-lg shadow p-6">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-semibold">Blood Inventory</h2>
                 <?php if ($isAdmin): ?>
-                    <a href="<?php echo BASE_URL; ?>/admin/manage-inventory.php"
+                    <a href="<?php echo BASE_URL; ?>/views/admin/manage-inventory.php"
                         class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
                         Manage Inventory
                     </a>

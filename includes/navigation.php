@@ -14,6 +14,7 @@ if (!isset($user)) {
                     <?php if ($isDonor): ?>
                         <a href="<?php echo BASE_URL; ?>/views/appointments/index.php" class="text-gray-700 hover:text-red-600">Appointments</a>
                         <a href="<?php echo BASE_URL; ?>/views/donor/donation-history.php" class="text-gray-700 hover:text-red-600">Donation History</a>
+                        <a href="<?php echo BASE_URL; ?>/views/donors/index.php" class="text-gray-700 hover:text-red-600">Find Donors</a>
                     <?php endif; ?>
                     <a href="<?php echo BASE_URL; ?>/views/messages/index.php" class="text-gray-700 hover:text-red-600">Messages</a>
                     <?php if ($isAdmin): ?>

@@ -44,6 +44,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             if ($result) {
                 $_SESSION['success_message'] = 'Registration successful! Please login with your credentials.';
+                header('Location: ' . BASE_URL . '/views/auth/login.php');
+                exit();
             } else {
                 $_SESSION['error_message'] = 'Registration failed due to server error';
             }

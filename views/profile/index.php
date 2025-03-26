@@ -153,10 +153,16 @@ if ($isDonor) {
                 </div>
 
                 <div class="flex items-center justify-between pt-4 border-t">
-                    <a href="<?php echo BASE_URL; ?>/views/profile/change-password.php"
-                        class="text-blue-600 hover:text-blue-800">
-                        Change Password
-                    </a>
+                    <div>
+                        <a href="<?php echo BASE_URL; ?>/views/profile/change-password.php"
+                            class="text-blue-600 hover:text-blue-800 mr-4">
+                            Change Password
+                        </a>
+                        <a href="<?php echo BASE_URL; ?>/views/profile/location.php"
+                            class="text-blue-600 hover:text-blue-800">
+                            Manage Location
+                        </a>
+                    </div>
                     <button type="submit" name="update_profile" value="1"
                         class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
                         Save Changes

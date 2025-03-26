@@ -1,12 +1,12 @@
 <?php
-require_once 'includes/auth_middleware.php';
+require_once '../../includes/auth_middleware.php';
 
 $error = '';
 $success = '';
 
 // Redirect if already a donor
 if ($isDonor) {
-    header('Location: ' . BASE_URL . '/dashboard.php');
+    header('Location: ' . BASE_URL . '/views/dashboard/index.php');
     exit();
 }
 
@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $conn->beginTransaction();
 
         try {
-            // Insert into Donor table
+            // Insert into Donor table and Location table (if provided) inside try block
             $stmt = $conn->prepare("
                 INSERT INTO Donor (
                     user_id, 
@@ -60,12 +60,32 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $_POST['medical_notes'] ?? null
             ]);
 
+            // Save location data if provided
+            if (!empty($_POST['latitude']) && !empty($_POST['longitude'])) {
+                $stmt = $conn->prepare("
+                    INSERT INTO Location (
+                        user_id,
+                        latitude,
+                        longitude,
+                        address,
+                        location_name
+                    ) VALUES (?, ?, ?, ?, 'Home')
+                ");
+
+                $stmt->execute([
+                    $user['user_id'],
+                    $_POST['latitude'],
+                    $_POST['longitude'],
+                    $_POST['address'] ?? null
+                ]);
+            }
+
             // If we get here, commit the transaction
             $conn->commit();
             $success = 'You have successfully registered as a donor!';
 
             // Redirect to dashboard after 2 seconds
-            header("refresh:2;url=" . BASE_URL . "/dashboard.php");
+            header("refresh:2;url=" . BASE_URL . "/views/dashboard/index.php");
         } catch (PDOException $e) {
             // Roll back the transaction if there was a database error
             if ($conn->inTransaction()) {
@@ -94,13 +114,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <div class="max-w-7xl mx-auto px-4">
             <div class="flex justify-between h-16">
                 <div class="flex items-center">
-                    <a href="<?php echo BASE_URL; ?>/dashboard.php" class="text-2xl font-semibold text-red-600">
+                    <a href="<?php echo BASE_URL; ?>/views/dashboard/index.php" class="text-2xl font-semibold text-red-600">
                         BloodConnect
                     </a>
                 </div>
                 <div class="flex items-center space-x-4">
                     <span class="text-gray-700">Welcome, <?php echo htmlspecialchars($user['email']); ?></span>
-                    <a href="<?php echo BASE_URL; ?>/logout.php" class="text-red-600 hover:text-red-800">Logout</a>
+                    <a href="<?php echo BASE_URL; ?>/views/auth/logout.php" class="text-red-600 hover:text-red-800">Logout</a>
                 </div>
             </div>
         </div>
@@ -174,6 +194,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         placeholder="Please describe any medical conditions, medications, or relevant health information"></textarea>
                 </div>
 
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700">Share Your Location</label>
+                    <p class="text-sm text-gray-500 mb-2">This helps match you with nearby donation requests</p>
+                    <button type="button" id="getLocationBtn" class="bg-blue-500 text-white px-3 py-1 rounded text-sm">
+                        Get My Location
+                    </button>
+                    <input type="hidden" name="latitude" id="latitude">
+                    <input type="hidden" name="longitude" id="longitude">
+                    <input type="hidden" name="address" id="address">
+                </div>
+
+
                 <div class="bg-gray-50 p-4 rounded">
                     <h3 class="font-medium text-gray-900 mb-2">Requirements for Blood Donation:</h3>
                     <ul class="list-disc list-inside text-sm text-gray-600 space-y-1">
@@ -186,7 +218,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 </div>
 
                 <div class="flex items-center justify-end space-x-4">
-                    <a href="<?php echo BASE_URL; ?>/dashboard.php"
+                    <a href="<?php echo BASE_URL; ?>/views/dashboard/index.php"
                         class="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300">
                         Cancel
                     </a>
@@ -199,5 +231,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </div>
     </div>
 </body>
+<script>
+    document.getElementById('getLocationBtn').addEventListener('click', function() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                document.getElementById('latitude').value = position.coords.latitude;
+                document.getElementById('longitude').value = position.coords.longitude;
+
+                // Reverse geocoding to get address
+                fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById('address').value = data.display_name;
+                        alert('Location captured successfully!');
+                    });
+            });
+        } else {
+            alert('Geolocation is not supported by this browser.');
+        }
+    });
+</script>
 
 </html>
