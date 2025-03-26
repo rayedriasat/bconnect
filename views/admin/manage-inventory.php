@@ -88,6 +88,53 @@ $inventory = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <style>
+        /* Custom styles for form elements */
+        select,
+        input[type="number"] {
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            padding: 0.5rem 0.75rem;
+            width: 100%;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        .select2-container--default .select2-selection--single {
+            height: 42px;
+            padding: 0.375rem 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 1.5;
+            padding-left: 0;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 40px;
+        }
+
+        .select2-dropdown {
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .select2-container--default .select2-results__option--highlighted[aria-selected] {
+            background-color: #2563eb;
+        }
+
+        /* Improve table input fields */
+        .table-input {
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            padding: 0.375rem 0.5rem;
+            width: 5rem;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+    </style>
 </head>
 
 <body class="bg-gray-100">
@@ -109,12 +156,12 @@ $inventory = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <!-- Add/Update Inventory Form -->
         <div class="bg-white rounded-lg shadow p-6 mb-6">
             <h2 class="text-xl font-semibold mb-4">Add/Update Inventory</h2>
-            <form method="POST" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <form method="POST" class="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <input type="hidden" name="action" value="add">
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Hospital</label>
-                    <select name="hospital_id" required class="w-full rounded border-gray-300">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Hospital</label>
+                    <select name="hospital_id" required class="form-select">
                         <?php foreach ($hospitals as $hospital): ?>
                             <option value="<?php echo $hospital['hospital_id']; ?>">
                                 <?php echo htmlspecialchars($hospital['name']); ?>
@@ -124,8 +171,8 @@ $inventory = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Blood Type</label>
-                    <select name="blood_type" required class="w-full rounded border-gray-300">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Blood Type</label>
+                    <select name="blood_type" required class="form-select">
                         <?php
                         $blood_types = ['O-', 'O+', 'A-', 'A+', 'B-', 'B+', 'AB-', 'AB+'];
                         foreach ($blood_types as $type) {
@@ -136,14 +183,13 @@ $inventory = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
-                    <input type="number" name="quantity" required min="0"
-                        class="w-full rounded border-gray-300">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
+                    <input type="number" name="quantity" required min="0" class="form-input">
                 </div>
 
                 <div class="flex items-end">
                     <button type="submit"
-                        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                        class="bg-blue-600 text-white px-6 py-2.5 rounded hover:bg-blue-700 transition duration-200 font-medium">
                         Add/Update Inventory
                     </button>
                 </div>
@@ -190,9 +236,9 @@ $inventory = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                             value="<?php echo $item['inventory_id']; ?>">
                                         <input type="number" name="quantity"
                                             value="<?php echo $item['quantity']; ?>"
-                                            class="w-20 rounded border-gray-300">
+                                            class="table-input">
                                         <button type="submit"
-                                            class="text-blue-600 hover:text-blue-800">
+                                            class="text-blue-600 hover:text-blue-800 font-medium">
                                             Update
                                         </button>
                                     </form>
@@ -207,7 +253,7 @@ $inventory = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                         <input type="hidden" name="inventory_id"
                                             value="<?php echo $item['inventory_id']; ?>">
                                         <button type="submit"
-                                            class="text-red-600 hover:text-red-800">
+                                            class="text-red-600 hover:text-red-800 font-medium">
                                             Delete
                                         </button>
                                     </form>
@@ -222,7 +268,10 @@ $inventory = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     <script>
         $(document).ready(function() {
-            $('select').select2();
+            $('select').select2({
+                width: '100%',
+                dropdownCssClass: 'select2-dropdown-large'
+            });
         });
     </script>
 </body>
