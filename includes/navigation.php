@@ -3,17 +3,38 @@ if (!isset($user)) {
     header('Location: ' . BASE_URL . '/views/auth/login.php');
     exit();
 }
+
+// Get unread notification count
+$unreadCount = 0;
+if (isset($user['user_id'])) {
+    $stmt = $conn->prepare("
+        SELECT COUNT(*) as count 
+        FROM Notification 
+        WHERE user_id = ? AND is_read = 0
+    ");
+    $stmt->execute([$user['user_id']]);
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    $unreadCount = $result['count'] ?? 0;
+}
 ?>
-<nav class="bg-white shadow-lg">
+<nav class="bg-white shadow-md">
     <div class="max-w-7xl mx-auto px-4">
         <div class="flex justify-between h-16">
-            <div class="flex items-center">
-                <a href="<?php echo BASE_URL; ?>/views/dashboard/index.php" class="text-2xl font-semibold text-red-600">BloodConnect</a>
+            <div class="flex">
+                <div class="flex-shrink-0 flex items-center">
+                    <a href="<?php echo BASE_URL; ?>/views/dashboard/index.php" class="text-red-600 font-bold text-xl">BloodConnect</a>
+                </div>
             </div>
+            <div class="flex items-center">
+                <!-- Add notification icon here -->
+                <a href="<?php echo BASE_URL; ?>/views/notifications.php" class="relative p-2 mr-4 text-gray-600 hover:text-gray-900">
+                    <i class="fas fa-bell"></i>
+                    <?php if ($unreadCount > 0): ?>
+                        <span class="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full"><?php echo $unreadCount; ?></span>
+                    <?php endif; ?>
+                </a>
 
-            <!-- Desktop Navigation with Dropdown -->
-            <div class="hidden md:flex items-center space-x-3">
-                <!-- Profile dropdown -->
+                <!-- User dropdown menu -->
                 <div class="relative group">
                     <button class="flex items-center text-gray-700 hover:text-red-600 px-3 py-2 rounded-md">
                         <span>My Account</span>
