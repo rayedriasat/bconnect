@@ -1,5 +1,5 @@
 <?php
-require_once 'includes/auth_middleware.php';
+require_once '../../includes/auth_middleware.php';
 
 // Redirect if not a donor
 if (!$isDonor) {
@@ -41,13 +41,13 @@ $donations = $stmt->fetchAll(PDO::FETCH_ASSOC);
 </head>
 
 <body class="bg-gray-100">
-    <?php require_once 'includes/navigation.php'; ?>
+    <?php require_once __DIR__ . '/../../includes/navigation.php'; ?>
 
     <div class="max-w-7xl mx-auto px-4 py-8">
         <div class="bg-white rounded-lg shadow p-6">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-semibold">My Donation History</h2>
-                <a href="<?php echo BASE_URL; ?>/donation-requests.php"
+                <a href="<?php echo BASE_URL; ?>/views/requests/index.php"
                     class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
                     Find Donation Requests
                 </a>

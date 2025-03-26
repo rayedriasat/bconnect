@@ -1,5 +1,5 @@
 <?php
-require_once 'includes/auth_middleware.php';
+require_once '../../includes/auth_middleware.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['request_id'])) {
     try {
@@ -55,16 +55,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['request_id'])) {
         $conn->commit();
 
         // Redirect back with success message
-        header('Location: ' . BASE_URL . '/donation-requests.php?success=1&message=cancelled');
+        header('Location: ' . BASE_URL . '/views/requests/index.php?success=1&message=cancelled');
         exit();
     } catch (Exception $e) {
         $conn->rollBack();
         error_log("Error in cancel-request.php: " . $e->getMessage());
-        header('Location: ' . BASE_URL . '/donation-requests.php?error=1&message=cancel_failed');
+        header('Location: ' . BASE_URL . '/views/requests/index.php?error=1&message=cancel_failed');
         exit();
     }
 }
 
 // If we get here, something went wrong
-header('Location: ' . BASE_URL . '/donation-requests.php');
+header('Location: ' . BASE_URL . '/views/requests/index.php');
 exit();

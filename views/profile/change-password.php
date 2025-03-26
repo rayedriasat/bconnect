@@ -1,5 +1,5 @@
 <?php
-require_once '../includes/auth_middleware.php';
+require_once '../../includes/auth_middleware.php';
 
 $success = '';
 $error = '';
@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 
 <body class="bg-gray-100">
-    <?php require_once '../includes/navigation.php'; ?>
+    <?php require_once __DIR__ . '/../../includes/navigation.php'; ?>
 
     <div class="max-w-2xl mx-auto px-4 py-8">
         <div class="bg-white rounded-lg shadow-md p-6">
@@ -82,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
 
                 <div class="flex items-center justify-between pt-4 border-t">
-                    <a href="<?php echo BASE_URL; ?>/profile/index.php"
+                    <a href="<?php echo BASE_URL; ?>/views/profile/index.php"
                         class="text-gray-600 hover:text-gray-800">
                         Back to Profile
                     </a>

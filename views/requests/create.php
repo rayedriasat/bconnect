@@ -1,5 +1,5 @@
 <?php
-require_once 'includes/auth_middleware.php';
+require_once '../../includes/auth_middleware.php';
 
 // Get list of hospitals
 $stmt = $conn->prepare("SELECT hospital_id, name FROM Hospital ORDER BY name");
@@ -20,8 +20,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $contact_phone = trim($_POST['contact_phone']);
 
         // Validate inputs
-        if (empty($hospital_id) || empty($blood_type) || empty($quantity) || 
-            empty($urgency) || empty($contact_person) || empty($contact_phone)) {
+        if (
+            empty($hospital_id) || empty($blood_type) || empty($quantity) ||
+            empty($urgency) || empty($contact_person) || empty($contact_phone)
+        ) {
             throw new Exception('All fields are required');
         }
 
@@ -48,9 +50,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ]);
 
         $success = 'Blood donation request created successfully!';
-        
+
         // Redirect to dashboard after 2 seconds
-        header("refresh:2;url=" . BASE_URL . "/dashboard.php");
+        header("refresh:2;url=" . BASE_URL . "/views/dashboard/index.php");
     } catch (Exception $e) {
         $error = $e->getMessage();
     }
@@ -59,14 +61,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Request Blood Donation - BloodConnect</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
+
 <body class="bg-gray-100">
-    <?php require_once 'includes/navigation.php'; ?>
+    <?php require_once __DIR__ . '/../../includes/navigation.php'; ?>
 
     <div class="max-w-3xl mx-auto px-4 py-8">
         <div class="bg-white rounded-lg shadow p-6">
@@ -111,8 +115,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Quantity (units)</label>
-                    <input type="number" name="quantity" min="1" required 
-                           class="w-full px-3 py-2 rounded-md border-2 border-gray-300 shadow-sm">
+                    <input type="number" name="quantity" min="1" required
+                        class="w-full px-3 py-2 rounded-md border-2 border-gray-300 shadow-sm">
                 </div>
 
                 <div>
@@ -126,23 +130,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Contact Person</label>
-                    <input type="text" name="contact_person" required 
-                           class="w-full px-3 py-2 rounded-md border-2 border-gray-300 shadow-sm">
+                    <input type="text" name="contact_person" required
+                        class="w-full px-3 py-2 rounded-md border-2 border-gray-300 shadow-sm">
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Contact Phone</label>
-                    <input type="tel" name="contact_phone" required 
-                           class="w-full px-3 py-2 rounded-md border-2 border-gray-300 shadow-sm">
+                    <input type="tel" name="contact_phone" required
+                        class="w-full px-3 py-2 rounded-md border-2 border-gray-300 shadow-sm">
                 </div>
 
                 <div class="flex items-center justify-end space-x-4 pt-4">
-                    <a href="<?php echo BASE_URL; ?>/dashboard.php"
-                       class="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300">
+                    <a href="<?php echo BASE_URL; ?>/views/dashboard/index.php"
+                        class="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300">
                         Cancel
                     </a>
                     <button type="submit"
-                            class="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700">
+                        class="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700">
                         Submit Request
                     </button>
                 </div>
@@ -150,4 +154,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
 </body>
+
 </html>

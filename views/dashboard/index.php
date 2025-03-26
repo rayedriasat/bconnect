@@ -1,5 +1,5 @@
 <?php
-require_once 'includes/auth_middleware.php';
+require_once '../../includes/auth_middleware.php';
 
 // Handle availability toggle
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['toggle_availability']) && $isDonor) {
@@ -8,7 +8,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['toggle_availability']
         $stmt->execute([$user['user_id']]);
 
         // Refresh the page to show updated status
-        header('Location: ' . BASE_URL . '/dashboard.php');
+        header('Location: ' . BASE_URL . '/views/dashboard/index.php');
         exit();
     } catch (Exception $e) {
         $error = 'Failed to update availability status';
@@ -56,7 +56,7 @@ $notifications = $stmt->fetchAll(PDO::FETCH_ASSOC);
 </head>
 
 <body class="bg-gray-100">
-    <?php require_once 'includes/navigation.php'; ?>
+    <?php require_once __DIR__ . '/../../includes/navigation.php'; ?>
 
     <div class="max-w-7xl mx-auto px-4 py-6">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -107,7 +107,7 @@ $notifications = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <div class="text-green-600 mt-2">✓ Registered Donor</div>
                     <?php else: ?>
                         <div class="mt-4">
-                            <a href="<?php echo BASE_URL; ?>/become-donor.php"
+                            <a href="<?php echo BASE_URL; ?>/views/donor/become-donor.php"
                                 class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
                                 Become a Donor
                             </a>
@@ -182,9 +182,9 @@ $notifications = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <div class="bg-white rounded-lg shadow p-6">
                     <h2 class="text-xl font-semibold mb-4">Donor Information</h2>
                     <div class="space-y-2">
-                        <a href="<?php echo BASE_URL; ?>/appointments.php"
+                        <a href="<?php echo BASE_URL; ?>/views/appointments/index.php"
                             class="block text-blue-600 hover:text-blue-800">My Appointments</a>
-                        <a href="<?php echo BASE_URL; ?>/donation-history.php"
+                        <a href="<?php echo BASE_URL; ?>/views/donor/donation-history.php"
                             class="block text-blue-600 hover:text-blue-800">Donation History</a>
                         <form method="POST" class="inline">
                             <input type="hidden" name="toggle_availability" value="1">
@@ -234,7 +234,7 @@ $notifications = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <?php endforeach; ?>
                     </div>
                     <div class="mt-4">
-                        <a href="<?php echo BASE_URL; ?>/messages.php"
+                        <a href="<?php echo BASE_URL; ?>/views/messages/index.php"
                             class="text-blue-600 hover:text-blue-800">View all messages →</a>
                     </div>
                 <?php endif; ?>

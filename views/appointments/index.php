@@ -1,5 +1,5 @@
 <?php
-require_once 'includes/auth_middleware.php';
+require_once '../../includes/auth_middleware.php';
 
 // Add this function at the top of the file
 function canUpdateStatus($currentStatus)
@@ -49,13 +49,13 @@ $appointments = $stmt->fetchAll(PDO::FETCH_ASSOC);
 </head>
 
 <body class="bg-gray-100">
-    <?php require_once 'includes/navigation.php'; ?>
+    <?php require_once __DIR__ . '/../../includes/navigation.php'; ?>
 
     <div class="max-w-7xl mx-auto px-4 py-6">
         <div class="bg-white rounded-lg shadow p-6">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-semibold">My Appointments</h2>
-                <a href="<?php echo BASE_URL; ?>/donation-requests.php"
+                <a href="<?php echo BASE_URL; ?>/views/requests/index.php"
                     class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
                     Find Donation Requests
                 </a>
@@ -137,7 +137,7 @@ $appointments = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                             </span>
 
                                             <?php if (canUpdateStatus($appointment['status'])): ?>
-                                                <form method="POST" action="<?php echo BASE_URL; ?>/update-appointment-status.php"
+                                                <form method="POST" action="<?php echo BASE_URL; ?>/views/appointments/update-status.php"
                                                     class="flex items-center space-x-2"
                                                     onsubmit="return confirm('Are you sure you want to update this appointment status?');">
                                                     <input type="hidden" name="appointment_id" value="<?php echo htmlspecialchars($appointment['appointment_id']); ?>">

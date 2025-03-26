@@ -1,9 +1,9 @@
 <?php
-require_once 'includes/auth_middleware.php';
+require_once '../../includes/auth_middleware.php';
 
 // Redirect if not a donor
 if (!$isDonor) {
-    header('Location: ' . BASE_URL . '/dashboard.php');
+    header('Location: ' . BASE_URL . '/views/dashboard/index.php');
     exit();
 }
 
@@ -13,7 +13,7 @@ $stmt->execute([$user['user_id']]);
 $donor = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$donor) {
-    header('Location: ' . BASE_URL . '/donation-requests.php?error=1');
+    header('Location: ' . BASE_URL . '/views/requests/index.php?error=1');
     exit();
 }
 
@@ -83,7 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['request_id'])) {
             $conn->commit();
 
             // Redirect back with success message
-            header('Location: ' . BASE_URL . '/donation-requests.php?success=1');
+            header('Location: ' . BASE_URL . '/views/requests/index.php?success=1');
             exit();
         } else {
             throw new Exception("Request not found");
@@ -91,11 +91,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['request_id'])) {
     } catch (Exception $e) {
         $conn->rollBack();
         error_log("Error in fulfill-request.php: " . $e->getMessage());
-        header('Location: ' . BASE_URL . '/donation-requests.php?error=1');
+        header('Location: ' . BASE_URL . '/views/requests/index.php?error=1');
         exit();
     }
 }
 
 // If we get here, something went wrong
-header('Location: ' . BASE_URL . '/donation-requests.php');
+header('Location: ' . BASE_URL . '/views/requests/index.php');
 exit();
