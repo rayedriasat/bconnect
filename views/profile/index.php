@@ -22,7 +22,7 @@ if (isset($_POST['toggle_2fa'])) {
 }
 
 // Handle regular profile updates
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['toggle_2fa'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
     try {
         // Start transaction
         $conn->beginTransaction();
@@ -148,18 +148,7 @@ if ($isDonor) {
                                     : 'Enable 2FA for additional security'; ?>
                             </p>
                         </div>
-                        <form method="POST" class="ml-4">
-                            <input type="hidden"
-                                name="toggle_2fa"
-                                value="<?php echo $user['two_factor_enabled'] ? 'disable' : 'enable'; ?>">
-                            <button type="submit"
-                                class="<?php echo $user['two_factor_enabled']
-                                            ? 'bg-red-600 hover:bg-red-700'
-                                            : 'bg-green-600 hover:bg-green-700'; ?> 
-                                    text-white px-4 py-2 rounded-md transition duration-150">
-                                <?php echo $user['two_factor_enabled'] ? 'Disable 2FA' : 'Enable 2FA'; ?>
-                            </button>
-                        </form>
+                        <!-- Move 2FA form outside the main form -->
                     </div>
                 </div>
 
@@ -168,11 +157,25 @@ if ($isDonor) {
                         class="text-blue-600 hover:text-blue-800">
                         Change Password
                     </a>
-                    <button type="submit"
+                    <button type="submit" name="update_profile" value="1"
                         class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
                         Save Changes
                     </button>
                 </div>
+            </form>
+
+            <!-- Place 2FA form here, after the main form -->
+            <form method="POST" class="mt-4">
+                <input type="hidden"
+                    name="toggle_2fa"
+                    value="<?php echo $user['two_factor_enabled'] ? 'disable' : 'enable'; ?>">
+                <button type="submit"
+                    class="<?php echo $user['two_factor_enabled']
+                                ? 'bg-red-600 hover:bg-red-700'
+                                : 'bg-green-600 hover:bg-green-700'; ?> 
+                        text-white px-4 py-2 rounded-md transition duration-150">
+                    <?php echo $user['two_factor_enabled'] ? 'Disable 2FA' : 'Enable 2FA'; ?>
+                </button>
             </form>
         </div>
     </div>
