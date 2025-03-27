@@ -4,18 +4,14 @@ if (!isset($user)) {
     exit();
 }
 
-// Get unread notification count
-$unreadCount = 0;
-if (isset($user['user_id'])) {
-    $stmt = $conn->prepare("
-        SELECT COUNT(*) as count 
-        FROM Notification 
-        WHERE user_id = ? AND is_read = 0
-    ");
-    $stmt->execute([$user['user_id']]);
-    $result = $stmt->fetch(PDO::FETCH_ASSOC);
-    $unreadCount = $result['count'] ?? 0;
-}
+// Get unread notification count - only count in-app notifications
+$stmt = $conn->prepare("
+    SELECT COUNT(*) as unread_count 
+    FROM Notification 
+    WHERE user_id = ? AND type = 'in-app' AND is_read = 0
+");
+$stmt->execute([$user['user_id']]);
+$unreadCount = $stmt->fetch(PDO::FETCH_ASSOC)['unread_count'];
 ?>
 <nav class="bg-white shadow-md">
     <div class="max-w-7xl mx-auto px-4">
@@ -61,6 +57,7 @@ if (isset($user['user_id'])) {
                         <div class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 hidden group-hover:block">
                             <a href="<?php echo BASE_URL; ?>/views/appointments/index.php" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Appointments</a>
                             <a href="<?php echo BASE_URL; ?>/views/donor/donation-history.php" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Donation History</a>
+                            <a href="<?php echo BASE_URL; ?>/views/donor/blood-inventory.php" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Blood Inventory</a>
                             <a href="<?php echo BASE_URL; ?>/views/donors/index.php" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Find Donors</a>
                             <a href="<?php echo BASE_URL; ?>/views/requests/index.php" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Donation Requests</a>
                         </div>
@@ -84,10 +81,10 @@ if (isset($user['user_id'])) {
                 <?php endif; ?>
 
                 <!-- Request donation button - always visible -->
-                <a href="<?php echo BASE_URL; ?>/views/requests/create.php" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md">Request Donation</a>
+                <a href="<?php echo BASE_URL; ?>/views/requests/create.php" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md mr-4">Request Donation</a>
 
                 <!-- User email display -->
-                <span class="text-sm text-gray-600 hidden lg:inline-block"><?php echo htmlspecialchars($user['email']); ?></span>
+                <span class="text-sm text-gray-600 hidden lg:inline-block ml-2"><?php echo htmlspecialchars($user['email']); ?></span>
             </div>
 
             <!-- Mobile menu button -->
@@ -106,6 +103,7 @@ if (isset($user['user_id'])) {
             <?php if ($isDonor): ?>
                 <a href="<?php echo BASE_URL; ?>/views/appointments/index.php" class="block py-2 px-4 text-gray-700 hover:text-red-600">Appointments</a>
                 <a href="<?php echo BASE_URL; ?>/views/donor/donation-history.php" class="block py-2 px-4 text-gray-700 hover:text-red-600">Donation History</a>
+                <a href="<?php echo BASE_URL; ?>/views/donor/blood-inventory.php" class="block py-2 px-4 text-gray-700 hover:text-red-600">Blood Inventory</a>
                 <a href="<?php echo BASE_URL; ?>/views/donors/index.php" class="block py-2 px-4 text-gray-700 hover:text-red-600">Find Donors</a>
             <?php endif; ?>
             <a href="<?php echo BASE_URL; ?>/views/messages/index.php" class="block py-2 px-4 text-gray-700 hover:text-red-600">Messages</a>

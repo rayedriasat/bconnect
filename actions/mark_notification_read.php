@@ -15,17 +15,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['notification_id'])) {
         
         if ($notification) {
             $stmt = $conn->prepare("
-                DELETE FROM Notification 
+                UPDATE Notification 
+                SET is_read = 1 
                 WHERE notification_id = ?
             ");
             $stmt->execute([$notification_id]);
             
-            $_SESSION['success_message'] = 'Notification deleted successfully';
+            $_SESSION['success_message'] = 'Notification marked as read';
         } else {
             $_SESSION['error_message'] = 'Notification not found or access denied';
         }
     } catch (Exception $e) {
-        $_SESSION['error_message'] = 'Failed to delete notification: ' . $e->getMessage();
+        $_SESSION['error_message'] = 'Failed to mark notification as read: ' . $e->getMessage();
     }
 }
 

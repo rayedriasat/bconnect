@@ -1,5 +1,6 @@
 <?php
 require_once '../../includes/auth_middleware.php';
+require_once '../../Core/functs.php';
 
 // Redirect if not an admin
 if (!$isAdmin) {
@@ -7,8 +8,8 @@ if (!$isAdmin) {
     exit();
 }
 
-$error = '';
-$success = '';
+$error = getFlashMessage('error');
+$success = getFlashMessage('success');
 
 // Handle admin addition
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -16,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $email = trim($_POST['email']);
 
         if (empty($email)) {
-            $error = 'Email is required';
+            $_SESSION['error_message'] = 'Email is required';
         } else {
             try {
                 // First check if user exists
@@ -32,15 +33,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         // Make user admin
                         $stmt = $conn->prepare("INSERT INTO Admin (user_id) VALUES (?)");
                         $stmt->execute([$user['user_id']]);
-                        $success = 'User has been made admin successfully!';
+                        $_SESSION['success_message'] = 'User has been made admin successfully!';
                     } else {
-                        $error = 'User is already an admin';
+                        $_SESSION['error_message'] = 'User is already an admin';
                     }
                 } else {
-                    $error = 'User not found';
+                    $_SESSION['error_message'] = 'User not found';
                 }
             } catch (Exception $e) {
-                $error = 'Failed to add admin. Please try again.';
+                $_SESSION['error_message'] = 'Failed to add admin. Please try again.';
             }
         }
     }
@@ -52,11 +53,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $stmt = $conn->prepare("DELETE FROM Admin WHERE user_id = ?");
             $stmt->execute([$admin_user_id]);
-            $success = 'Admin privileges removed successfully!';
+            $_SESSION['success_message'] = 'Admin privileges removed successfully!';
         } catch (Exception $e) {
-            $error = 'Failed to remove admin privileges.';
+            $_SESSION['error_message'] = 'Failed to remove admin privileges.';
         }
     }
+
+    // Redirect to refresh the page and show messages
+    header('Location: ' . BASE_URL . '/views/admin/manage-admins.php');
+    exit();
 }
 
 // Get list of admins
@@ -68,20 +73,15 @@ $stmt = $conn->prepare("
 ");
 $stmt->execute();
 $admins = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Set page title
+$pageTitle = 'Manage Admins - BloodConnect Admin';
+require_once __DIR__ . '/../../includes/header.php';
 ?>
-
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Admins - BloodConnect Admin</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
 
 <body class="bg-gray-100">
     <?php require_once '../../includes/navigation.php'; ?>
+    <?php require_once '../../includes/_alerts.php'; ?>
 
     <div class="max-w-7xl mx-auto px-4 py-6">
         <div class="bg-white rounded-lg shadow p-6">

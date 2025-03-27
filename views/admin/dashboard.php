@@ -1,11 +1,15 @@
 <?php
 require_once '../../includes/auth_middleware.php';
+require_once '../../Core/functs.php';
 
 // Redirect if not an admin
 if (!$isAdmin) {
     header('Location: ' . BASE_URL . '/dashboard.php');
     exit();
 }
+
+$error = getFlashMessage('error');
+$success = getFlashMessage('success');
 
 // Get quick statistics
 try {
@@ -48,22 +52,18 @@ try {
     $stmt->execute();
     $recentRequests = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) {
-    $error = 'Error fetching statistics';
+    $_SESSION['error_message'] = 'Error fetching statistics: ' . $e->getMessage();
+    header('Location: ' . BASE_URL . '/views/admin/dashboard.php');
+    exit();
 }
+
+$pageTitle = 'Admin Dashboard - BloodConnect';
+require_once __DIR__ . '/../../includes/header.php';
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - BloodConnect</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-
 <body class="bg-gray-100">
-    <?php require_once '../../includes/navigation.php'; ?>
+    <?php require_once __DIR__ . '/../../includes/navigation.php'; ?>
+    <?php require_once __DIR__ . '/../../includes/_alerts.php'; ?>
 
     <div class="max-w-7xl mx-auto px-4 py-6">
         <h1 class="text-3xl font-bold text-gray-900 mb-8">Admin Dashboard</h1>

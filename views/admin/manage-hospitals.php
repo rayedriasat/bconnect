@@ -1,5 +1,6 @@
 <?php
 require_once '../../includes/auth_middleware.php';
+require_once '../../Core/functs.php';
 
 // Redirect if not an admin
 if (!$isAdmin) {
@@ -7,28 +8,49 @@ if (!$isAdmin) {
     exit();
 }
 
-$error = '';
-$success = '';
+$error = getFlashMessage('error');
+$success = getFlashMessage('success');
 
-// Handle hospital addition and deletion (keep your existing POST handling code)
+// Handle hospital operations
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // ... your existing POST handling code ...
+    try {
+        if (isset($_POST['action'])) {
+            switch ($_POST['action']) {
+                case 'add':
+                    $stmt = $conn->prepare("INSERT INTO Hospital (name, address, phone) VALUES (?, ?, ?)");
+                    $stmt->execute([$_POST['name'], $_POST['address'], $_POST['phone']]);
+                    $_SESSION['success_message'] = 'Hospital added successfully';
+                    break;
+
+                case 'edit':
+                    $stmt = $conn->prepare("UPDATE Hospital SET name = ?, address = ?, phone = ? WHERE hospital_id = ?");
+                    $stmt->execute([$_POST['name'], $_POST['address'], $_POST['phone'], $_POST['hospital_id']]);
+                    $_SESSION['success_message'] = 'Hospital updated successfully';
+                    break;
+
+                case 'delete':
+                    $stmt = $conn->prepare("DELETE FROM Hospital WHERE hospital_id = ?");
+                    $stmt->execute([$_POST['hospital_id']]);
+                    $_SESSION['success_message'] = 'Hospital deleted successfully';
+                    break;
+            }
+        }
+    } catch (Exception $e) {
+        $_SESSION['error_message'] = 'Operation failed: ' . $e->getMessage();
+    }
+
+    // Redirect to refresh the page and show messages
+    header('Location: ' . BASE_URL . '/views/admin/manage-hospitals.php');
+    exit();
 }
+
+$pageTitle = 'Manage Hospitals - BloodConnect Admin';
+require_once __DIR__ . '/../../includes/header.php';
 ?>
-
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Hospitals - BloodConnect Admin</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-</head>
 
 <body class="bg-gray-100">
     <?php require_once '../../includes/navigation.php'; ?>
+    <?php require_once '../../includes/_alerts.php'; ?>
 
     <div class="max-w-7xl mx-auto px-4 py-6">
         <div class="bg-white rounded-lg shadow p-6">

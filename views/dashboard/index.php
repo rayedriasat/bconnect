@@ -1,17 +1,16 @@
 <?php
 require_once '../../includes/auth_middleware.php';
+require_once '../../Core/functs.php';
 
 // Handle availability toggle
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['toggle_availability']) && $isDonor) {
     try {
         $stmt = $conn->prepare("UPDATE Donor SET is_available = NOT is_available WHERE user_id = ?");
         $stmt->execute([$user['user_id']]);
-
-        // Refresh the page to show updated status
         header('Location: ' . BASE_URL . '/views/dashboard/index.php');
         exit();
     } catch (Exception $e) {
-        $error = 'Failed to update availability status';
+        $_SESSION['error_message'] = 'Failed to update availability status: ' . $e->getMessage();
     }
 }
 
@@ -43,21 +42,21 @@ $stmt = $conn->prepare("
 ");
 $stmt->execute([$user['user_id']]);
 $notifications = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Get flash messages
+$success = getFlashMessage('success');
+$error = getFlashMessage('error');
+
+// Set page title
+$pageTitle = 'Dashboard - BloodConnect';
+
+// Include header
+require_once __DIR__ . '/../../includes/header.php';
 ?>
-
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <title>Dashboard - BloodConnect</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
 
 <body class="bg-gray-100">
     <?php require_once __DIR__ . '/../../includes/navigation.php'; ?>
+    <?php require_once __DIR__ . '/../../includes/_alerts.php'; ?>
 
     <div class="max-w-7xl mx-auto px-4 py-6">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -101,9 +100,18 @@ $notifications = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         </div>
                         <div class="flex items-center justify-between">
                             <span class="text-gray-600">Status:</span>
-                            <span class="font-medium <?php echo $donorDetails['is_available'] ? 'text-green-600' : 'text-red-600'; ?>">
-                                <?php echo $donorDetails['is_available'] ? 'Available' : 'Not Available'; ?>
-                            </span>
+                            <div class="flex items-center space-x-2">
+                                <span class="font-medium <?php echo $donorDetails['is_available'] ? 'text-green-600' : 'text-red-600'; ?>">
+                                    <?php echo $donorDetails['is_available'] ? 'Available' : 'Not Available'; ?>
+                                </span>
+                                <form method="POST" class="inline">
+                                    <input type="hidden" name="toggle_availability" value="1">
+                                    <button type="submit"
+                                        class="px-2 py-1 text-sm rounded <?php echo $donorDetails['is_available'] ? 'bg-red-100 text-red-600 hover:bg-red-200' : 'bg-green-100 text-green-600 hover:bg-green-200'; ?>">
+                                        <?php echo $donorDetails['is_available'] ? 'Set Unavailable' : 'Set Available'; ?>
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                         <div class="text-green-600 mt-2">✓ Registered Donor</div>
                     <?php else: ?>
@@ -182,20 +190,18 @@ $notifications = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <?php endif; ?>
 
             <?php if ($isDonor): ?>
-                <!-- Donor Information -->
+                <!-- Donor Quick Actions -->
                 <div class="bg-white rounded-lg shadow p-6">
-                    <h2 class="text-xl font-semibold mb-4">Donor Information</h2>
+                    <h2 class="text-xl font-semibold mb-4">Quick Actions</h2>
                     <div class="space-y-2">
                         <a href="<?php echo BASE_URL; ?>/views/appointments/index.php"
                             class="block text-blue-600 hover:text-blue-800">My Appointments</a>
                         <a href="<?php echo BASE_URL; ?>/views/donor/donation-history.php"
                             class="block text-blue-600 hover:text-blue-800">Donation History</a>
-                        <form method="POST" class="inline">
-                            <input type="hidden" name="toggle_availability" value="1">
-                            <button type="submit" class="text-blue-600 hover:text-blue-800">
-                                <?php echo $donorDetails['is_available'] ? 'Set as Unavailable' : 'Set as Available'; ?>
-                            </button>
-                        </form>
+                        <a href="<?php echo BASE_URL; ?>/views/donor/blood-inventory.php"
+                            class="block text-blue-600 hover:text-blue-800">Blood Inventory</a>
+                        <a href="<?php echo BASE_URL; ?>/views/requests/index.php"
+                            class="block text-blue-600 hover:text-blue-800">View Donation Requests</a>
                     </div>
                 </div>
             <?php endif; ?>

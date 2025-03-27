@@ -28,29 +28,29 @@ $stmt = $conn->prepare("
 ");
 $stmt->execute([$donor['donor_id']]);
 $donations = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+$pageTitle = 'Donation History - BloodConnect';
+require_once __DIR__ . '/../../includes/header.php';
 ?>
-
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Donation History - BloodConnect</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
 
 <body class="bg-gray-100">
     <?php require_once '../../includes/navigation.php'; ?>
+    <?php require_once '../../includes/_alerts.php'; ?>
 
     <div class="max-w-7xl mx-auto px-4 py-8">
         <div class="bg-white rounded-lg shadow p-6">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-semibold">My Donation History</h2>
-                <a href="<?php echo BASE_URL; ?>/views/requests/index.php"
-                    class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-                    Find Donation Requests
-                </a>
+                <div class="space-x-4">
+                    <a href="<?php echo BASE_URL; ?>/views/donor/blood-inventory.php"
+                        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                        View Blood Inventory
+                    </a>
+                    <a href="<?php echo BASE_URL; ?>/views/requests/index.php"
+                        class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                        Find Donation Requests
+                    </a>
+                </div>
             </div>
 
             <?php if (empty($donations)): ?>
