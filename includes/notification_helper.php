@@ -157,19 +157,19 @@ function notifyMatchingDonors($conn, $request_id)
             return 0;
         }
 
-        // Find matching donors (available and matching blood type)
+        // Find matching donors from the Matches table
         $stmt = $conn->prepare("
-            SELECT d.user_id 
-            FROM Donor d
-            JOIN Users u ON d.user_id = u.user_id
-            WHERE d.blood_type = ? 
-            AND d.is_available = 1
-            AND d.user_id != ? -- Exclude the requester
+            SELECT m.donor_id, m.score, d.user_id 
+            FROM Matches m
+            JOIN Donor d ON m.donor_id = d.donor_id
+            WHERE m.request_id = ?
+            AND d.user_id != ?
+            ORDER BY m.score DESC
         ");
-        $stmt->execute([$request['blood_type'], $request['requester_user_id']]);
-        $donors = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->execute([$request_id, $request['requester_user_id']]);
+        $matches = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        if (empty($donors)) {
+        if (empty($matches)) {
             return 0;
         }
 
@@ -177,12 +177,12 @@ function notifyMatchingDonors($conn, $request_id)
         $message = "URGENT: {$urgency_text} need for {$request['blood_type']} blood type at {$request['hospital_name']}. Please check the donation requests page if you can help.";
 
         $notified_count = 0;
-        foreach ($donors as $donor) {
+        foreach ($matches as $match) {
             // Send in-app notification
-            sendInAppNotification($conn, $donor['user_id'], $message);
+            sendInAppNotification($conn, $match['user_id'], $message);
 
             // Send email notification
-            sendEmailNotification($conn, $donor['user_id'], $message);
+            sendEmailNotification($conn, $match['user_id'], $message);
 
             $notified_count++;
         }

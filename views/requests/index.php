@@ -151,6 +151,22 @@ require_once __DIR__ . '/../../includes/header.php';
                                     </form>
                                 <?php endif; ?>
                             </div>
+                            <!-- In the actions column for each request -->
+                            <div class="flex space-x-2">
+                                <?php if ($request['requester_id'] == $user['user_id']): ?>
+                                    <a href="<?php echo BASE_URL; ?>/views/requests/matches.php?id=<?php echo $request['request_id']; ?>"
+                                        class="text-blue-600 hover:text-blue-800">
+                                        View Matches
+                                    </a>
+                                <?php endif; ?>
+                                <!-- Other buttons -->
+                                <?php if ($isDonor && $request['requester_id'] != $user['user_id']): ?>
+                                    <a href="<?php echo BASE_URL; ?>/views/appointments/schedule.php?request_id=<?php echo $request['request_id']; ?>"
+                                        class="text-green-600 hover:text-green-800">
+                                        Schedule Appointment
+                                    </a>
+                                <?php endif; ?>
+                            </div>
                         </div>
                     <?php endforeach; ?>
                 </div>

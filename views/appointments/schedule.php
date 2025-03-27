@@ -54,10 +54,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // After successfully creating the appointment
         if ($stmt->execute($params)) {
             $appointment_id = $conn->lastInsertId();
-
+            
+            // Create a reminder for this appointment
+            require_once '../../includes/reminder_helper.php';
+            createReminder($conn, $appointment_id, 'email');
+            
             // Notify the requester about the new appointment
             notifyRequesterAboutAppointment($conn, $appointment_id);
-
+            
             // Get requester information to establish communication
             $stmt = $conn->prepare("
                 SELECT dr.requester_id 
