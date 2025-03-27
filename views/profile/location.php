@@ -33,19 +33,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_location'])) {
         $error = $e->getMessage();
     }
 }
-?>
 
-<!DOCTYPE html>
-<html lang="en">
+// Set page title
+$pageTitle = 'Manage Location - BloodConnect';
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Location - BloodConnect</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+// Add Leaflet CSS and JS
+$additionalHeadContent = '
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-</head>
+';
+
+require_once __DIR__ . '/../../includes/header.php';
+?>
 
 <body class="bg-gray-100">
     <?php require_once __DIR__ . '/../../includes/navigation.php'; ?>

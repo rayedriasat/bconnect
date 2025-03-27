@@ -1,14 +1,19 @@
 <?php
 require_once '../includes/auth_middleware.php';
+require_once '../Core/functs.php';
 
-// Get notifications for the current user
+// Get notifications for the current user - only show in-app notifications
 $stmt = $conn->prepare("
     SELECT * FROM Notification 
-    WHERE user_id = ? 
+    WHERE user_id = ? AND type = 'in-app'
     ORDER BY sent_at DESC
 ");
 $stmt->execute([$user['user_id']]);
 $notifications = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Get flash messages
+$success = getFlashMessage('success');
+$error = getFlashMessage('error');
 ?>
 
 <!DOCTYPE html>
@@ -30,13 +35,23 @@ $notifications = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <div class="flex justify-between items-center mb-6">
                 <h1 class="text-2xl font-bold text-gray-800">Your Notifications</h1>
                 <?php if (count($notifications) > 0): ?>
-                    <form method="POST" action="../actions/mark_notifications_read.php">
-                        <button type="submit" class="text-blue-600 hover:text-blue-800">
-                            Mark all as read
-                        </button>
-                    </form>
+                    <div class="flex space-x-4">
+                        <form method="POST" action="<?php echo BASE_URL; ?>/actions/mark_notifications_read.php">
+                            <button type="submit" class="text-blue-600 hover:text-blue-800">
+                                Mark all as read
+                            </button>
+                        </form>
+                        <form method="POST" action="<?php echo BASE_URL; ?>/actions/delete_all_notifications.php"
+                            onsubmit="return confirm('Are you sure you want to delete all notifications?');">
+                            <button type="submit" class="text-red-600 hover:text-red-800">
+                                Delete all
+                            </button>
+                        </form>
+                    </div>
                 <?php endif; ?>
             </div>
+
+            <?php require_once '../includes/_alerts.php'; ?>
 
             <?php if (count($notifications) > 0): ?>
                 <div class="space-y-4">
@@ -58,10 +73,18 @@ $notifications = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                         <?php echo date('M j, Y g:i A', strtotime($notification['sent_at'])); ?>
                                     </p>
                                 </div>
-                                <div>
-                                    <form method="POST" action="../actions/delete_notification.php">
+                                <div class="flex space-x-2">
+                                    <?php if (!$notification['is_read']): ?>
+                                        <form method="POST" action="<?php echo BASE_URL; ?>/actions/mark_notification_read.php">
+                                            <input type="hidden" name="notification_id" value="<?php echo $notification['notification_id']; ?>">
+                                            <button type="submit" class="text-blue-500 hover:text-blue-700" title="Mark as read">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        </form>
+                                    <?php endif; ?>
+                                    <form method="POST" action="<?php echo BASE_URL; ?>/actions/delete_notification.php">
                                         <input type="hidden" name="notification_id" value="<?php echo $notification['notification_id']; ?>">
-                                        <button type="submit" class="text-red-500 hover:text-red-700">
+                                        <button type="submit" class="text-red-500 hover:text-red-700" title="Delete notification">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </form>

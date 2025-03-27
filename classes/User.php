@@ -189,21 +189,25 @@ class User
         $mail = new PHPMailer(true);
 
         try {
+            // Load mail configuration
+            require_once __DIR__ . '/../config/mail_config.php';
+
             // SMTP Configuration
             $mail->isSMTP();
-            $mail->Host       = 'smtp.gmail.com';
+            $mail->Host       = MAIL_HOST;
             $mail->SMTPAuth   = true;
-            $mail->Username   = 'coderay231@gmail.com'; // Your Gmail
-            $mail->Password   = 'zebm wluz tedz qhnt'; // Your App Password
-            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-            $mail->Port       = 587;
+            $mail->Username   = MAIL_USERNAME;
+            $mail->Password   = MAIL_PASSWORD;
+            $mail->SMTPSecure = MAIL_ENCRYPTION;
+            $mail->Port       = MAIL_PORT;
 
             // Email Content
-            $mail->setFrom('coderay231@gmail.com', 'BloodConnect');
+            $mail->setFrom(MAIL_FROM_ADDRESS, MAIL_FROM_NAME);
             $mail->addAddress($email);
             $mail->isHTML(true);
             $mail->Subject = 'Your BloodConnect Verification Code';
 
+            // Rest of the email content remains the same
             $mail->Body = "
             <html>
             <head>
@@ -254,23 +258,27 @@ class User
         $mail = new PHPMailer(true);
 
         try {
+            // Load mail configuration
+            require_once __DIR__ . '/../config/mail_config.php';
+
             // SMTP Configuration
             $mail->isSMTP();
-            $mail->Host       = 'smtp.gmail.com';
+            $mail->Host       = MAIL_HOST;
             $mail->SMTPAuth   = true;
-            $mail->Username   = 'coderay231@gmail.com';
-            $mail->Password   = 'zebm wluz tedz qhnt';
-            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-            $mail->Port       = 587;
+            $mail->Username   = MAIL_USERNAME;
+            $mail->Password   = MAIL_PASSWORD;
+            $mail->SMTPSecure = MAIL_ENCRYPTION;
+            $mail->Port       = MAIL_PORT;
 
             // Email Content
-            $mail->setFrom('coderay231@gmail.com', 'BloodConnect');
+            $mail->setFrom(MAIL_FROM_ADDRESS, MAIL_FROM_NAME);
             $mail->addAddress($email);
             $mail->isHTML(true);
             $mail->Subject = 'Reset Your BloodConnect Password';
             $user_id = $this->getByEmail($email);
             $reset_link = 'http://localhost/bconnect/views/auth/reset-password.php?token=' . $token . '&user_id=' . $user_id['user_id'];
 
+            // Rest of the email content remains the same
             $mail->Body = "
             <html>
             <head>

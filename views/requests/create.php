@@ -1,73 +1,70 @@
 <?php
 require_once '../../includes/auth_middleware.php';
+require_once '../../includes/notification_helper.php';
+require_once '../../Core/functs.php';
 
-// Get list of hospitals
+// Get hospitals for dropdown
 $stmt = $conn->prepare("SELECT hospital_id, name FROM Hospital ORDER BY name");
 $stmt->execute();
 $hospitals = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-$error = '';
-$success = '';
+// Get flash messages
+$success = getFlashMessage('success');
+$error = getFlashMessage('error');
 
+// Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    try {
-        // Trim and validate all inputs
-        $hospital_id = trim($_POST['hospital_id']);
-        $blood_type = trim($_POST['blood_type']);
-        $quantity = (int)trim($_POST['quantity']);
-        $urgency = trim($_POST['urgency']);
-        $contact_person = trim($_POST['contact_person']);
-        $contact_phone = trim($_POST['contact_phone']);
+    // Validate inputs
+    $hospital_id = $_POST['hospital_id'] ?? '';
+    $blood_type = $_POST['blood_type'] ?? '';
+    $quantity = $_POST['quantity'] ?? '';
+    $urgency = $_POST['urgency'] ?? 'medium';
+    $contact_person = $_POST['contact_person'] ?? '';
+    $contact_phone = $_POST['contact_phone'] ?? '';
 
-        // Validate inputs
-        if (
-            empty($hospital_id) || empty($blood_type) || empty($quantity) ||
-            empty($urgency) || empty($contact_person) || empty($contact_phone)
-        ) {
-            throw new Exception('All fields are required');
+    if (empty($hospital_id) || empty($blood_type) || empty($quantity) || empty($contact_person) || empty($contact_phone)) {
+        $_SESSION['error_message'] = 'All fields are required';
+        header('Location: ' . BASE_URL . '/views/requests/create.php');
+        exit();
+    } else {
+        try {
+            $stmt = $conn->prepare("
+                INSERT INTO DonationRequest 
+                (hospital_id, requester_id, blood_type, quantity, urgency, contact_person, contact_phone) 
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            ");
+            $stmt->execute([
+                $hospital_id,
+                $user['user_id'],
+                $blood_type,
+                $quantity,
+                $urgency,
+                $contact_person,
+                $contact_phone
+            ]);
+
+            $request_id = $conn->lastInsertId();
+
+            // Notify matching donors
+            $notified_count = notifyMatchingDonors($conn, $request_id);
+
+            $_SESSION['success_message'] = 'Donation request created successfully! ' .
+                ($notified_count > 0 ? $notified_count . ' potential donors have been notified.' : 'No matching donors found at this time.');
+
+            // Redirect to avoid form resubmission
+            header('Location: ' . BASE_URL . '/views/requests/index.php');
+            exit();
+        } catch (Exception $e) {
+            $_SESSION['error_message'] = 'Failed to create donation request: ' . $e->getMessage();
+            header('Location: ' . BASE_URL . '/views/requests/create.php');
+            exit();
         }
-
-        if ($quantity <= 0) {
-            throw new Exception('Quantity must be greater than 0');
-        }
-
-        // Insert the request
-        $stmt = $conn->prepare("
-            INSERT INTO DonationRequest (
-                hospital_id, requester_id, blood_type, quantity, 
-                urgency, contact_person, contact_phone
-            ) VALUES (?, ?, ?, ?, ?, ?, ?)
-        ");
-
-        $stmt->execute([
-            $hospital_id,
-            $user['user_id'],
-            $blood_type,
-            $quantity,
-            $urgency,
-            $contact_person,
-            $contact_phone
-        ]);
-
-        $success = 'Blood donation request created successfully!';
-
-        // Redirect to dashboard after 2 seconds
-        header("refresh:2;url=" . BASE_URL . "/views/dashboard/index.php");
-    } catch (Exception $e) {
-        $error = $e->getMessage();
     }
 }
+
+$pageTitle = 'Request Blood Donation - BloodConnect';
+require_once __DIR__ . '/../../includes/header.php';
 ?>
-
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Request Blood Donation - BloodConnect</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
 
 <body class="bg-gray-100">
     <?php require_once __DIR__ . '/../../includes/navigation.php'; ?>
@@ -76,17 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="bg-white rounded-lg shadow p-6">
             <h2 class="text-2xl font-semibold mb-6">Request Blood Donation</h2>
 
-            <?php if ($error): ?>
-                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                    <?php echo htmlspecialchars($error); ?>
-                </div>
-            <?php endif; ?>
-
-            <?php if ($success): ?>
-                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-                    <?php echo htmlspecialchars($success); ?>
-                </div>
-            <?php endif; ?>
+            <?php require_once __DIR__ . '/../../includes/_alerts.php'; ?>
 
             <form method="POST" class="space-y-4">
                 <div>

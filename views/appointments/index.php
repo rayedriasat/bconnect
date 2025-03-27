@@ -1,5 +1,6 @@
 <?php
 require_once '../../includes/auth_middleware.php';
+require_once '../../Core/functs.php';
 
 // Add this function at the top of the file
 function canUpdateStatus($currentStatus)
@@ -36,20 +37,21 @@ $stmt = $conn->prepare("
 
 $stmt->execute([$donor['donor_id']]);
 $appointments = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Get flash messages
+$success = getFlashMessage('success');
+$error = getFlashMessage('error');
+
+// Set page title
+$pageTitle = 'My Appointments - BloodConnect';
+
+// Include header
+require_once __DIR__ . '/../../includes/header.php';
 ?>
-
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Appointments - BloodConnect</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
 
 <body class="bg-gray-100">
     <?php require_once __DIR__ . '/../../includes/navigation.php'; ?>
+    <?php require_once __DIR__ . '/../../includes/_alerts.php'; ?>
 
     <div class="max-w-7xl mx-auto px-4 py-6">
         <div class="bg-white rounded-lg shadow p-6">
@@ -61,11 +63,6 @@ $appointments = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 </a>
             </div>
 
-            <?php if (isset($_GET['success'])): ?>
-                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-                    Appointment scheduled successfully!
-                </div>
-            <?php endif; ?>
 
             <?php if (empty($appointments)): ?>
                 <p class="text-gray-500 text-center py-4">No appointments found.</p>

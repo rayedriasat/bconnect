@@ -1,8 +1,9 @@
 <?php
 require_once '../../includes/auth_middleware.php';
+require_once '../../Core/functs.php';
 
-$error = '';
-$success = '';
+$error = getFlashMessage('error');
+$success = getFlashMessage('success');
 
 // Redirect if already a donor
 if ($isDonor) {
@@ -82,10 +83,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             // If we get here, commit the transaction
             $conn->commit();
-            $success = 'You have successfully registered as a donor!';
+            $_SESSION['success_message'] = 'You have successfully registered as a donor!';
 
             // Redirect to dashboard after 2 seconds
-            header("refresh:2;url=" . BASE_URL . "/views/dashboard/index.php");
+            header("refresh:2;url=" . BASE_URL . "/views/dashboard/index.php?success=1");
         } catch (PDOException $e) {
             // Roll back the transaction if there was a database error
             if ($conn->inTransaction()) {
@@ -94,37 +95,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             throw new Exception('Database error occurred. Please try again.');
         }
     } catch (Exception $e) {
-        $error = $e->getMessage();
+        $_SESSION['error_message'] = $e->getMessage();
     }
 }
+
+$pageTitle = 'Become a Donor - BloodConnect';
+require_once __DIR__ . '/../../includes/header.php';
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Become a Donor - BloodConnect</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-
 <body class="bg-gray-100">
-    <nav class="bg-white shadow-lg">
-        <div class="max-w-7xl mx-auto px-4">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <a href="<?php echo BASE_URL; ?>/views/dashboard/index.php" class="text-2xl font-semibold text-red-600">
-                        BloodConnect
-                    </a>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <span class="text-gray-700">Welcome, <?php echo htmlspecialchars($user['email']); ?></span>
-                    <a href="<?php echo BASE_URL; ?>/views/auth/logout.php" class="text-red-600 hover:text-red-800">Logout</a>
-                </div>
-            </div>
-        </div>
-    </nav>
+    <?php require_once __DIR__ . '/../../includes/navigation.php'; ?>
+    <?php require_once __DIR__ . '/../../includes/_alerts.php'; ?>
 
     <div class="max-w-3xl mx-auto px-4 py-8">
         <div class="bg-white rounded-lg shadow-md p-6">

@@ -1,5 +1,7 @@
 <?php
-require_once 'includes/auth_middleware.php';
+require_once '../../includes/auth_middleware.php';
+require_once '../../Core/functs.php';
+require_once '../../includes/notification_helper.php';
 
 // Redirect if not a donor
 if (!$isDonor) {
@@ -7,101 +9,106 @@ if (!$isDonor) {
     exit();
 }
 
+// Get request ID from URL
+$request_id = $_GET['request_id'] ?? 0;
+
 // Get donor details
 $stmt = $conn->prepare("SELECT * FROM Donor WHERE user_id = ?");
 $stmt->execute([$user['user_id']]);
 $donor = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$donor) {
-    header('Location: ' . BASE_URL . '/dashboard.php');
-    exit();
-}
+    $_SESSION['error_message'] = 'Donor profile not found';
+} else {
+    // Get request details
+    $stmt = $conn->prepare("
+        SELECT dr.*, h.name as hospital_name, h.address as hospital_address
+        FROM DonationRequest dr
+        JOIN Hospital h ON dr.hospital_id = h.hospital_id
+        WHERE dr.request_id = ?
+    ");
+    $stmt->execute([$request_id]);
+    $request = $stmt->fetch(PDO::FETCH_ASSOC);
 
-// Get request details
-if (!isset($_GET['request_id'])) {
-    header('Location: ' . BASE_URL . '/donation-requests.php');
-    exit();
-}
-
-$stmt = $conn->prepare("
-    SELECT dr.*, h.name as hospital_name, h.address as hospital_address 
-    FROM DonationRequest dr
-    JOIN Hospital h ON dr.hospital_id = h.hospital_id
-    WHERE dr.request_id = ? AND dr.blood_type = ?
-");
-$stmt->execute([$_GET['request_id'], $donor['blood_type']]);
-$request = $stmt->fetch(PDO::FETCH_ASSOC);
-
-if (!$request) {
-    header('Location: ' . BASE_URL . '/donation-requests.php?error=invalid_request');
-    exit();
-}
-
-$error = '';
-$success = '';
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $scheduled_date = $_POST['date'];
-    $scheduled_time = $_POST['time'];
-    $scheduled_datetime = $scheduled_date . ' ' . $scheduled_time;
-
-    if (strtotime($scheduled_datetime) < time()) {
-        $error = 'Cannot schedule appointments in the past';
-    } else {
-        try {
-            $stmt = $conn->prepare("
-                INSERT INTO DonationAppointment (
-                    request_id, donor_id, scheduled_time, status
-                ) VALUES (?, ?, ?, 'pending')
-            ");
-            $stmt->execute([
-                $request['request_id'],
-                $donor['donor_id'],
-                $scheduled_datetime
-            ]);
-
-            // Send notification to requester
-            $stmt = $conn->prepare("
-                INSERT INTO Message (sender_id, receiver_id, content) 
-                VALUES (?, ?, ?)
-            ");
-            $stmt->execute([
-                $user['user_id'],
-                $request['requester_id'],
-                "A donor has scheduled an appointment for your blood donation request."
-            ]);
-
-            header('Location: ' . BASE_URL . '/appointments.php?success=1');
-            exit();
-        } catch (Exception $e) {
-            $error = 'Failed to schedule appointment. Please try again.';
-        }
+    if (!$request) {
+        $_SESSION['error_message'] = 'Donation request not found';
     }
 }
+
+// Handle form submission
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $scheduled_time = $_POST['scheduled_date'] . ' ' . $_POST['scheduled_time'];
+
+    try {
+        $stmt = $conn->prepare("
+            INSERT INTO DonationAppointment 
+            (request_id, donor_id, scheduled_time, status) 
+            VALUES (?, ?, ?, 'pending')
+        ");
+        $params = [
+            $request_id,
+            $donor['donor_id'],
+            $scheduled_time
+        ];
+
+        // After successfully creating the appointment
+        if ($stmt->execute($params)) {
+            $appointment_id = $conn->lastInsertId();
+
+            // Notify the requester about the new appointment
+            notifyRequesterAboutAppointment($conn, $appointment_id);
+
+            // Get requester information to establish communication
+            $stmt = $conn->prepare("
+                SELECT dr.requester_id 
+                FROM DonationRequest dr
+                WHERE dr.request_id = ?
+            ");
+            $stmt->execute([$request_id]);
+            $requester = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            // Send initial message to establish communication
+            if ($requester) {
+                $initialMessage = "Hello, I've scheduled an appointment to donate blood for your request. Please let me know if you need any additional information from me.";
+
+                $stmt = $conn->prepare("
+                    INSERT INTO Message (sender_id, receiver_id, content, sent_at)
+                    VALUES (?, ?, ?, NOW())
+                ");
+                $stmt->execute([
+                    $user['user_id'],
+                    $requester['requester_id'],
+                    $initialMessage
+                ]);
+            }
+
+            $_SESSION['success_message'] = 'Appointment has been successfully scheduled!';
+            header('Location: ' . BASE_URL . '/views/appointments/index.php');
+            exit();
+        } else {
+            // Set flash message instead of passing via GET
+            $_SESSION['success_message'] = 'Appointment scheduled successfully! The requester has been notified.';
+        }
+
+        // Redirect to appointments page
+        header('Location: ' . BASE_URL . '/views/appointments/index.php');
+        exit();
+    } catch (Exception $e) {
+        $_SESSION['error_message'] = 'Failed to schedule appointment: ' . $e->getMessage();
+    }
+}
+
+$pageTitle = 'Schedule Donation Appointment - BloodConnect';
+require_once __DIR__ . '/../../includes/header.php';
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Schedule Donation Appointment - BloodConnect</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-
 <body class="bg-gray-100">
-    <?php require_once 'includes/navigation.php'; ?>
+    <?php require_once __DIR__ . '/../../includes/navigation.php'; ?>
+    <?php require_once __DIR__ . '/../../includes/_alerts.php'; ?>
 
-    <div class="max-w-7xl mx-auto px-4 py-8">
+    <div class="max-w-7xl mx-auto px-4 py-6">
         <div class="bg-white rounded-lg shadow p-6">
             <h2 class="text-2xl font-semibold mb-6">Schedule Donation Appointment</h2>
-
-            <?php if ($error): ?>
-                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                    <?php echo htmlspecialchars($error); ?>
-                </div>
-            <?php endif; ?>
 
             <div class="mb-6">
                 <h3 class="text-lg font-medium mb-2">Request Details</h3>
@@ -110,31 +117,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <p><strong>Address:</strong> <?php echo htmlspecialchars($request['hospital_address']); ?></p>
                     <p><strong>Blood Type:</strong> <?php echo $request['blood_type']; ?></p>
                     <p><strong>Units Needed:</strong> <?php echo $request['quantity']; ?></p>
+                    <p><strong>Requested:</strong> <?php echo date('M j, Y g:i A', strtotime($request['created_at'])); ?></p>
                 </div>
             </div>
 
             <form method="POST" class="space-y-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Date</label>
-                        <input type="date"
-                            name="date"
-                            required
-                            min="<?php echo date('Y-m-d'); ?>"
-                            class="w-full rounded-md border-gray-300 shadow-sm">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Scheduled Date</label>
+                        <input type="date" name="scheduled_date" required
+                            min="<?php echo date('Y-m-d'); ?>" class="w-full rounded-md border-gray-300 shadow-sm">
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Time</label>
-                        <input type="time"
-                            name="time"
-                            required
-                            class="w-full rounded-md border-gray-300 shadow-sm">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Scheduled Time</label>
+                        <input type="time" name="scheduled_time" required class="w-full rounded-md border-gray-300 shadow-sm">
                     </div>
                 </div>
 
                 <div class="flex items-center justify-between pt-4">
-                    <a href="<?php echo BASE_URL; ?>/donation-requests.php"
+                    <a href="<?php echo BASE_URL; ?>/views/requests/index.php"
                         class="text-gray-600 hover:text-gray-800">
                         Back to Requests
                     </a>

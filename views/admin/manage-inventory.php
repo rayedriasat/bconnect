@@ -1,5 +1,6 @@
 <?php
 require_once '../../includes/auth_middleware.php';
+require_once '../../Core/functs.php';
 
 // Redirect if not an admin
 if (!$isAdmin) {
@@ -7,10 +8,9 @@ if (!$isAdmin) {
     exit();
 }
 
-$success = '';
-$error = '';
+$error = getFlashMessage('error');
+$success = getFlashMessage('success');
 
-// Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         if (isset($_POST['action'])) {
@@ -26,22 +26,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $stmt->execute([
                         $_POST['hospital_id'],
                         $_POST['blood_type'],
-                        $_POST['quantity']
+                        $_POST['units_available']
                     ]);
-                    $success = 'Inventory updated successfully';
+                    $_SESSION['success_message'] = 'Inventory record added successfully';
                     break;
 
                 case 'update':
                     $stmt = $conn->prepare("
                         UPDATE BloodInventory 
-                        SET quantity = ?, last_updated = CURRENT_TIMESTAMP
+                        SET units_available = ? 
                         WHERE inventory_id = ?
                     ");
                     $stmt->execute([
-                        $_POST['quantity'],
+                        $_POST['units_available'],
                         $_POST['inventory_id']
                     ]);
-                    $success = 'Inventory updated successfully';
+                    $_SESSION['success_message'] = 'Inventory updated successfully';
                     break;
 
                 case 'delete':
@@ -50,13 +50,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         WHERE inventory_id = ?
                     ");
                     $stmt->execute([$_POST['inventory_id']]);
-                    $success = 'Inventory record deleted successfully';
+                    $_SESSION['success_message'] = 'Inventory record deleted successfully';
                     break;
             }
         }
     } catch (Exception $e) {
-        $error = 'Operation failed: ' . $e->getMessage();
+        $_SESSION['error_message'] = 'Operation failed: ' . $e->getMessage();
     }
+
+    // Redirect to refresh the page and show messages
+    header('Location: ' . BASE_URL . '/views/admin/manage-inventory.php');
+    exit();
 }
 
 // Get all hospitals
@@ -139,6 +143,7 @@ $inventory = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <body class="bg-gray-100">
     <?php require_once '../../includes/navigation.php'; ?>
+    <?php require_once '../../includes/_alerts.php'; ?>
 
     <div class="max-w-7xl mx-auto px-4 py-8">
         <?php if ($success): ?>
@@ -184,7 +189,7 @@ $inventory = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
-                    <input type="number" name="quantity" required min="0" class="form-input">
+                    <input type="number" name="units_available" required min="0" class="form-input">
                 </div>
 
                 <div class="flex items-end">
@@ -234,8 +239,8 @@ $inventory = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                         <input type="hidden" name="action" value="update">
                                         <input type="hidden" name="inventory_id"
                                             value="<?php echo $item['inventory_id']; ?>">
-                                        <input type="number" name="quantity"
-                                            value="<?php echo $item['quantity']; ?>"
+                                        <input type="number" name="units_available"
+                                            value="<?php echo $item['units_available']; ?>"
                                             class="table-input">
                                         <button type="submit"
                                             class="text-blue-600 hover:text-blue-800 font-medium">

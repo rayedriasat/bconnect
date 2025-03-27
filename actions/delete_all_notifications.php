@@ -4,15 +4,14 @@ require_once '../includes/auth_middleware.php';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         $stmt = $conn->prepare("
-            UPDATE Notification 
-            SET is_read = 1 
+            DELETE FROM Notification 
             WHERE user_id = ?
         ");
         $stmt->execute([$user['user_id']]);
         
-        $_SESSION['success_message'] = 'All notifications marked as read';
+        $_SESSION['success_message'] = 'All notifications deleted successfully';
     } catch (Exception $e) {
-        $_SESSION['error_message'] = 'Failed to mark notifications as read: ' . $e->getMessage();
+        $_SESSION['error_message'] = 'Failed to delete notifications: ' . $e->getMessage();
     }
 }
 

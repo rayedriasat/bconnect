@@ -1,5 +1,6 @@
 <?php
 require_once '../../includes/auth_middleware.php';
+require_once '../../Core/functs.php';
 
 // Redirect if not a donor
 if (!$isDonor) {
@@ -13,7 +14,8 @@ $stmt->execute([$user['user_id']]);
 $donor = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$donor) {
-    header('Location: ' . BASE_URL . '/views/requests/index.php?error=1');
+    $_SESSION['error_message'] = 'Donor profile not found';
+    header('Location: ' . BASE_URL . '/views/requests/index.php');
     exit();
 }
 
@@ -83,7 +85,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['request_id'])) {
             $conn->commit();
 
             // Redirect back with success message
-            header('Location: ' . BASE_URL . '/views/requests/index.php?success=1');
+            $_SESSION['success_message'] = 'Blood donation request has been fulfilled successfully';
+            header('Location: ' . BASE_URL . '/views/requests/index.php');
             exit();
         } else {
             throw new Exception("Request not found");
@@ -91,7 +94,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['request_id'])) {
     } catch (Exception $e) {
         $conn->rollBack();
         error_log("Error in fulfill-request.php: " . $e->getMessage());
-        header('Location: ' . BASE_URL . '/views/requests/index.php?error=1');
+        $_SESSION['error_message'] = 'Failed to fulfill request: ' . $e->getMessage();
+        header('Location: ' . BASE_URL . '/views/requests/index.php');
         exit();
     }
 }
