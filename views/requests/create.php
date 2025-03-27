@@ -45,6 +45,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $request_id = $conn->lastInsertId();
 
+            // Generate matches for the new request
+            require_once '../../includes/matching_helper.php';
+            generateMatches($conn, $request_id);
+
             // Notify matching donors
             $notified_count = notifyMatchingDonors($conn, $request_id);
 
