@@ -1,4 +1,8 @@
 <?php
+// Enable error reporting for debugging
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
 session_start();
 
 require_once '../../classes/User.php';
@@ -9,51 +13,62 @@ $error = getFlashMessage('error');
 define('BASE_URL', '/bconnect');
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $conn = require_once '../../includes/db_connect.php';
-    $user = new User($conn);
+    try {
+        $conn = require_once '../../includes/db_connect.php';
+        $user = new User($conn);
 
-    if (isset($_POST['email']) && isset($_POST['password'])) {
-        $result = $user->login($_POST['email'], $_POST['password']);
+        if (isset($_POST['email']) && isset($_POST['password'])) {
+            $result = $user->login($_POST['email'], $_POST['password']);
 
-        if ($result) {
-            if ($result['two_factor_enabled']) {
-                $code = $user->generateVerificationCode($result['user_id']);
+            if ($result) {
+                if ($result['two_factor_enabled']) {
+                    $code = $user->generateVerificationCode($result['user_id']);
 
-                if ($user->sendVerificationEmail($result['email'], $code)) {
-                    $_SESSION['2fa_required'] = true;
-                    $_SESSION['temp_user_id'] = $result['user_id'];
-                    $_SESSION['success_message'] = 'Verification code sent! Please check your email.';
+                    if ($user->sendVerificationEmail($result['email'], $code)) {
+                        $_SESSION['2fa_required'] = true;
+                        $_SESSION['temp_user_id'] = $result['user_id'];
+                        $_SESSION['success_message'] = 'Verification code sent! Please check your email.';
+                    } else {
+                        $_SESSION['error_message'] = 'Failed to send verification code. Please try again or contact support.';
+                    }
                 } else {
-                    $_SESSION['error_message'] = 'Failed to send verification code. Please try again or contact support.';
+                    unset($_SESSION['2fa_required']);
+                    unset($_SESSION['temp_user_id']);
+                    $_SESSION['user'] = $result;
+                    session_regenerate_id(true);
+                    header('Location: ' . BASE_URL . '/views/dashboard/');
+                    exit();
                 }
             } else {
+                $_SESSION['error_message'] = 'Invalid email or password';
+            }
+        } elseif (isset($_POST['verification_code']) && isset($_SESSION['temp_user_id'])) {
+            if ($user->verifyCode($_SESSION['temp_user_id'], $_POST['verification_code'])) {
+                $sql = "SELECT * FROM Users WHERE user_id = :user_id";
+                $stmt = $conn->prepare($sql);
+                $stmt->execute([':user_id' => $_SESSION['temp_user_id']]);
+                $_SESSION['user'] = $stmt->fetch(PDO::FETCH_ASSOC);
+                session_regenerate_id(true);
                 unset($_SESSION['2fa_required']);
                 unset($_SESSION['temp_user_id']);
-                $_SESSION['user'] = $result;
-                session_regenerate_id(true);
                 header('Location: ' . BASE_URL . '/views/dashboard/');
                 exit();
+            } else {
+                $_SESSION['error_message'] = 'Invalid or expired verification code';
             }
-        } else {
-            $_SESSION['error_message'] = 'Invalid email or password';
         }
-    } elseif (isset($_POST['verification_code']) && isset($_SESSION['temp_user_id'])) {
-        if ($user->verifyCode($_SESSION['temp_user_id'], $_POST['verification_code'])) {
-            $sql = "SELECT * FROM Users WHERE user_id = :user_id";
-            $stmt = $conn->prepare($sql);
-            $stmt->execute([':user_id' => $_SESSION['temp_user_id']]);
-            $_SESSION['user'] = $stmt->fetch(PDO::FETCH_ASSOC);
-            session_regenerate_id(true);
-            unset($_SESSION['2fa_required']);
-            unset($_SESSION['temp_user_id']);
-            header('Location: ' . BASE_URL . '/views/dashboard/');
-            exit();
-        } else {
-            $_SESSION['error_message'] = 'Invalid or expired verification code';
-        }
+        header('Location: ' . BASE_URL . '/views/auth/login.php');
+        exit();
+    } catch (Exception $e) {
+        // Show the actual error message for debugging
+        $_SESSION['error_message'] = 'Login error: ' . $e->getMessage();
+
+        // Also log the error with full details
+        error_log("Login error: " . $e->getMessage() . "\n" . $e->getTraceAsString());
+
+        header('Location: ' . BASE_URL . '/views/auth/login.php');
+        exit();
     }
-    header('Location: ' . BASE_URL . '/views/auth/login.php');
-    exit();
 }
 
 $pageTitle = 'Login - BloodConnect';
