@@ -159,13 +159,7 @@ require_once __DIR__ . '/../../includes/header.php';
                                         View Matches
                                     </a>
                                 <?php endif; ?>
-                                <!-- Other buttons -->
-                                <?php if ($isDonor && $request['requester_id'] != $user['user_id']): ?>
-                                    <a href="<?php echo BASE_URL; ?>/views/appointments/schedule.php?request_id=<?php echo $request['request_id']; ?>"
-                                        class="text-green-600 hover:text-green-800">
-                                        Schedule Appointment
-                                    </a>
-                                <?php endif; ?>
+
                             </div>
                         </div>
                     <?php endforeach; ?>
