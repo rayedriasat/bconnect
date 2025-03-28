@@ -44,6 +44,7 @@ $unreadCount = $stmt->fetch(PDO::FETCH_ASSOC)['unread_count'];
                         <a href="<?php echo BASE_URL; ?>/views/auth/logout.php" class="block px-4 py-2 text-red-600 hover:bg-gray-100">Logout</a>
                     </div>
                 </div>
+                <a href="<?php echo BASE_URL; ?>/views/donors/index.php" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Find Donors</a>
 
                 <!-- Donor specific dropdown -->
                 <?php if ($isDonor): ?>
@@ -58,7 +59,6 @@ $unreadCount = $stmt->fetch(PDO::FETCH_ASSOC)['unread_count'];
                             <a href="<?php echo BASE_URL; ?>/views/appointments/index.php" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Appointments</a>
                             <a href="<?php echo BASE_URL; ?>/views/donor/donation-history.php" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Donation History</a>
                             <a href="<?php echo BASE_URL; ?>/views/donor/blood-inventory.php" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Blood Inventory</a>
-                            <a href="<?php echo BASE_URL; ?>/views/donors/index.php" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Find Donors</a>
                             <a href="<?php echo BASE_URL; ?>/views/requests/index.php" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Donation Requests</a>
                         </div>
                     </div>
@@ -103,9 +103,9 @@ $unreadCount = $stmt->fetch(PDO::FETCH_ASSOC)['unread_count'];
             <?php if ($isDonor): ?>
                 <a href="<?php echo BASE_URL; ?>/views/appointments/index.php" class="block py-2 px-4 text-gray-700 hover:text-red-600">Appointments</a>
                 <a href="<?php echo BASE_URL; ?>/views/donor/donation-history.php" class="block py-2 px-4 text-gray-700 hover:text-red-600">Donation History</a>
-                <a href="<?php echo BASE_URL; ?>/views/donor/blood-inventory.php" class="block py-2 px-4 text-gray-700 hover:text-red-600">Blood Inventory</a>
                 <a href="<?php echo BASE_URL; ?>/views/donors/index.php" class="block py-2 px-4 text-gray-700 hover:text-red-600">Find Donors</a>
             <?php endif; ?>
+            <a href="<?php echo BASE_URL; ?>/views/donor/blood-inventory.php" class="block py-2 px-4 text-gray-700 hover:text-red-600">Blood Inventory</a>
             <a href="<?php echo BASE_URL; ?>/views/messages/index.php" class="block py-2 px-4 text-gray-700 hover:text-red-600">Messages</a>
             <?php if ($isAdmin): ?>
                 <a href="<?php echo BASE_URL; ?>/views/admin/dashboard.php" class="block py-2 px-4 text-gray-700 hover:text-red-600">Admin Panel</a>

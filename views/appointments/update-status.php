@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['appointment_id']) && 
         $stmt->execute([$new_status, $appointment_id]);
 
         // Notify about the status change for this appointment
-        notifyAppointmentStatusChange($conn, $appointment_id, $new_status);
+        if ($new_status !== 'completed') notifyAppointmentStatusChange($conn, $appointment_id, $new_status);
 
         // If the new status is "completed", fulfill the donation request
         if ($new_status === 'completed') {

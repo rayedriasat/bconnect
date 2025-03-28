@@ -43,7 +43,7 @@ function sendEmailNotification($conn, $user_id, $message)
             VALUES (?, ?, 'email')
         ");
         $result = $stmt->execute([$user_id, $message]);
-
+        return $result;
         // Get user email and name
         $stmt = $conn->prepare("SELECT email, name FROM Users WHERE user_id = ?");
         $stmt->execute([$user_id]);

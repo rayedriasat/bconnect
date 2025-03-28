@@ -9,6 +9,12 @@ $sortBy = $_GET['sort_by'] ?? 'name';
 $sortOrder = $_GET['sort_order'] ?? 'asc';
 $locationManager = new Location($conn);
 
+// Get user's location for distance calculation
+$userLocation = null;
+if ($user) {
+    $userLocation = $locationManager->getUserLocation($user['user_id']);
+}
+
 // Build the query
 $query = "
     SELECT d.donor_id, d.blood_type, d.is_available, d.weight, 
@@ -36,7 +42,7 @@ if (!empty($bloodType)) {
     $params[] = $bloodType;
 }
 
-// Add sorting
+// Add sorting - but for location sorting, we'll handle it after fetching the data
 $validSortColumns = ['name', 'blood_type', 'address'];
 $validSortOrders = ['asc', 'desc'];
 
@@ -48,10 +54,8 @@ if (!in_array($sortOrder, $validSortOrders)) {
     $sortOrder = 'asc';
 }
 
-// Special handling for location-based sorting
-if ($sortBy === 'address') {
-    $query .= " ORDER BY l.address $sortOrder, u.name ASC";
-} else {
+// Only add ORDER BY clause if not sorting by location/distance
+if ($sortBy !== 'address') {
     $query .= " ORDER BY " . ($sortBy === 'name' ? 'u.name' : 'd.blood_type') . " $sortOrder";
 }
 
@@ -60,15 +64,36 @@ $stmt = $conn->prepare($query);
 $stmt->execute($params);
 $donors = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+// Calculate distances and sort by distance if needed
+if ($sortBy === 'address' && $userLocation) {
+    // Calculate distance for each donor
+    foreach ($donors as &$donor) {
+        if (!empty($donor['latitude']) && !empty($donor['longitude'])) {
+            $donor['distance'] = $locationManager->calculateDistance(
+                $userLocation['latitude'],
+                $userLocation['longitude'],
+                $donor['latitude'],
+                $donor['longitude']
+            );
+        } else {
+            // Donors without location will be at the end or beginning depending on sort order
+            $donor['distance'] = $sortOrder === 'asc' ? PHP_FLOAT_MAX : -1;
+        }
+    }
+
+    // Sort the array by distance
+    usort($donors, function ($a, $b) use ($sortOrder) {
+        if ($sortOrder === 'asc') {
+            return $a['distance'] <=> $b['distance'];
+        } else {
+            return $b['distance'] <=> $a['distance'];
+        }
+    });
+}
+
 // Get unique blood types for filter dropdown
 $bloodTypesStmt = $conn->query("SELECT DISTINCT blood_type FROM Donor ORDER BY blood_type");
 $bloodTypes = $bloodTypesStmt->fetchAll(PDO::FETCH_COLUMN);
-
-// Get user's location for distance calculation
-$userLocation = null;
-if ($user) {
-    $userLocation = $locationManager->getUserLocation($user['user_id']);
-}
 
 $pageTitle = 'Donor Directory - BloodConnect';
 require_once __DIR__ . '/../../includes/header.php';
@@ -108,7 +133,7 @@ require_once __DIR__ . '/../../includes/header.php';
                         <select name="sort_by" class="w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring focus:ring-red-200">
                             <option value="name" <?php echo $sortBy === 'name' ? 'selected' : ''; ?>>Name</option>
                             <option value="blood_type" <?php echo $sortBy === 'blood_type' ? 'selected' : ''; ?>>Blood Type</option>
-                            <option value="address" <?php echo $sortBy === 'address' ? 'selected' : ''; ?>>Location</option>
+                            <option value="address" <?php echo $sortBy === 'address' ? 'selected' : ''; ?>>Distance</option>
                         </select>
                     </div>
 
