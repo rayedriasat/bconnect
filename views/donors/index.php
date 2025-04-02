@@ -101,7 +101,6 @@ require_once __DIR__ . '/../../includes/header.php';
 
 <body class="bg-gray-100">
     <?php require_once __DIR__ . '/../../includes/navigation.php'; ?>
-
     <div class="max-w-7xl mx-auto px-4 py-8">
         <div class="bg-white rounded-lg shadow-md p-6">
             <h2 class="text-2xl font-bold mb-6">Donor Directory</h2>
@@ -216,8 +215,14 @@ require_once __DIR__ . '/../../includes/header.php';
                                                 <?php
                                                 // Truncate long addresses
                                                 $address = $donor['address'];
-                                                echo htmlspecialchars(strlen($address) > 50 ? substr($address, 0, 47) . '...' : $address);
+                                                $displayAddress = htmlspecialchars(strlen($address) > 70 ? substr($address, 0, 70) . '...' : $address);
                                                 ?>
+                                                <a href="#" class="hover:text-blue-600 show-map-link"
+                                                    data-lat="<?php echo htmlspecialchars($donor['latitude']); ?>"
+                                                    data-lng="<?php echo htmlspecialchars($donor['longitude']); ?>"
+                                                    data-address="<?php echo htmlspecialchars($donor['address']); ?>">
+                                                    <?php echo $displayAddress; ?>
+                                                </a>
 
                                                 <?php if ($userLocation && !empty($donor['latitude']) && !empty($donor['longitude'])): ?>
                                                     <?php
@@ -273,3 +278,82 @@ require_once __DIR__ . '/../../includes/header.php';
 </body>
 
 </html>
+
+<!-- Add this at the end of the file, before the closing </body> tag -->
+<!-- Map Modal -->
+<div id="mapModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-xl p-6 w-11/12 max-w-4xl max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-semibold" id="mapModalTitle">Location Map</h3>
+            <button id="closeMapModal" class="text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div id="mapContainer" class="h-96 w-full rounded-lg border border-gray-300"></div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Map modal functionality
+        const mapModal = document.getElementById('mapModal');
+        const mapContainer = document.getElementById('mapContainer');
+        const mapModalTitle = document.getElementById('mapModalTitle');
+        const closeMapModal = document.getElementById('closeMapModal');
+        let map = null;
+
+        // Add click event to all map links
+        document.querySelectorAll('.show-map-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const lat = parseFloat(this.getAttribute('data-lat'));
+                const lng = parseFloat(this.getAttribute('data-lng'));
+                const address = this.getAttribute('data-address');
+
+                if (isNaN(lat) || isNaN(lng)) {
+                    alert('Location coordinates not available');
+                    return;
+                }
+
+                // Show modal
+                mapModal.classList.remove('hidden');
+                mapModalTitle.textContent = 'Location: ' + address;
+
+                // Initialize map if not already done
+                if (map) {
+                    map.remove();
+                }
+
+                // Create new map
+                map = L.map(mapContainer).setView([lat, lng], 15);
+
+                // Add OpenStreetMap tiles
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                }).addTo(map);
+
+                // Add marker
+                L.marker([lat, lng]).addTo(map)
+                    .bindPopup(address)
+                    .openPopup();
+
+                // Force map to recalculate its size
+                setTimeout(() => {
+                    map.invalidateSize();
+                }, 100);
+            });
+        });
+
+        // Close modal
+        closeMapModal.addEventListener('click', function() {
+            mapModal.classList.add('hidden');
+        });
+
+        // Close modal when clicking outside
+        mapModal.addEventListener('click', function(e) {
+            if (e.target === mapModal) {
+                mapModal.classList.add('hidden');
+            }
+        });
+    });
+</script>
