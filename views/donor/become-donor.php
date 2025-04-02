@@ -96,6 +96,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     } catch (Exception $e) {
         $_SESSION['error_message'] = $e->getMessage();
+        header('Location: ' . BASE_URL . '/views/donor/become-donor.php');
+        exit();
     }
 }
 
