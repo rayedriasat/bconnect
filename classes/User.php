@@ -276,15 +276,15 @@ class User
             $mail->isHTML(true);
             $mail->Subject = 'Reset Your BloodConnect Password';
             $user_id = $this->getByEmail($email);
+
             // Detect environment based on server name
             $environment = (strpos($_SERVER['SERVER_NAME'] ?? '', 'infinityfree') !== false || strpos($_SERVER['SERVER_NAME'] ?? '', '42web.io') !== false) ? 'production' : 'development';
-            if ($environment === 'production') {
-                define('BASE_URL', 'http://coderay.42web.io/bconnect');
-            } else {
-                define('BASE_URL', 'http://localhost/bconnect');
-            }
             
-            $reset_link = BASE_URL . '/views/auth/reset-password.php?token=' . urlencode($token) . '&user_id=' . urlencode($user_id['user_id']);
+            $base_url = ($environment === 'production')
+                ? 'http://coderay.42web.io/bconnect'
+                : 'http://localhost/bconnect';
+            
+            $reset_link = $base_url . '/views/auth/reset-password.php?token=' . urlencode($token) . '&user_id=' . urlencode($user_id['user_id']);
 
             // Rest of the email content remains the same
             $mail->Body = "
