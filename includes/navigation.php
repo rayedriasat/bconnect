@@ -21,7 +21,9 @@ $unreadCount = $stmt->fetch(PDO::FETCH_ASSOC)['unread_count'];
                     <a href="<?php echo BASE_URL; ?>/views/dashboard/index.php" class="text-red-600 font-bold text-xl">BloodConnect</a>
                 </div>
             </div>
-            <div class="flex items-center">
+
+            <!-- Desktop Navigation -->
+            <div class="hidden md:flex items-center">
                 <!-- Add notification icon here -->
                 <a href="<?php echo BASE_URL; ?>/views/notifications.php" class="relative p-2 mr-4 text-gray-600 hover:text-gray-900">
                     <i class="fas fa-bell"></i>
@@ -76,6 +78,7 @@ $unreadCount = $stmt->fetch(PDO::FETCH_ASSOC)['unread_count'];
                         <div class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 hidden group-hover:block">
                             <a href="<?php echo BASE_URL; ?>/views/admin/dashboard.php" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Admin Panel</a>
                             <a href="<?php echo BASE_URL; ?>/views/admin/manage-inventory.php" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Manage Inventory</a>
+                            <a href="<?php echo BASE_URL; ?>/views/admin/manage-hospitals.php" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Manage Hospitals</a>
                         </div>
                     </div>
                 <?php endif; ?>
@@ -89,6 +92,14 @@ $unreadCount = $stmt->fetch(PDO::FETCH_ASSOC)['unread_count'];
 
             <!-- Mobile menu button -->
             <div class="md:hidden flex items-center">
+                <!-- Notification icon for mobile -->
+                <a href="<?php echo BASE_URL; ?>/views/notifications.php" class="relative p-2 mr-2 text-gray-600 hover:text-gray-900">
+                    <i class="fas fa-bell"></i>
+                    <?php if ($unreadCount > 0): ?>
+                        <span class="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full"><?php echo $unreadCount; ?></span>
+                    <?php endif; ?>
+                </a>
+
                 <button type="button" class="mobile-menu-button text-gray-700 hover:text-red-600 focus:outline-none">
                     <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
@@ -100,23 +111,27 @@ $unreadCount = $stmt->fetch(PDO::FETCH_ASSOC)['unread_count'];
         <!-- Mobile Menu -->
         <div class="mobile-menu hidden md:hidden pb-4">
             <a href="<?php echo BASE_URL; ?>/views/profile/index.php" class="block py-2 px-4 text-gray-700 hover:text-red-600">My Profile</a>
-            <?php if ($isDonor): ?>
-                <a href="<?php echo BASE_URL; ?>/views/appointments/index.php" class="block py-2 px-4 text-gray-700 hover:text-red-600">Appointments</a>
-                <a href="<?php echo BASE_URL; ?>/views/donor/donation-history.php" class="block py-2 px-4 text-gray-700 hover:text-red-600">Donation History</a>
-                <a href="<?php echo BASE_URL; ?>/views/donors/index.php" class="block py-2 px-4 text-gray-700 hover:text-red-600">Find Donors</a>
-            <?php endif; ?>
-            <a href="<?php echo BASE_URL; ?>/views/donor/blood-inventory.php" class="block py-2 px-4 text-gray-700 hover:text-red-600">Blood Inventory</a>
             <a href="<?php echo BASE_URL; ?>/views/messages/index.php" class="block py-2 px-4 text-gray-700 hover:text-red-600">Messages</a>
-            <?php if ($isAdmin): ?>
-                <a href="<?php echo BASE_URL; ?>/views/admin/dashboard.php" class="block py-2 px-4 text-gray-700 hover:text-red-600">Admin Panel</a>
-                <a href="<?php echo BASE_URL; ?>/views/admin/manage-inventory.php" class="block py-2 px-4 text-gray-700 hover:text-red-600">Manage Inventory</a>
-            <?php endif; ?>
+            <a href="<?php echo BASE_URL; ?>/views/donors/index.php" class="block py-2 px-4 text-gray-700 hover:text-red-600">Find Donors</a>
+
             <?php if ($isDonor): ?>
-                <a href="<?php echo BASE_URL; ?>/views/requests/index.php" class="block py-2 px-4 text-gray-700 hover:text-red-600">Donation Requests</a>
+                <div class="py-1 px-4 bg-gray-100 font-medium text-sm text-gray-800">Donor Options</div>
+                <a href="<?php echo BASE_URL; ?>/views/appointments/index.php" class="block py-2 px-4 text-gray-700 hover:text-red-600 pl-8">Appointments</a>
+                <a href="<?php echo BASE_URL; ?>/views/donor/donation-history.php" class="block py-2 px-4 text-gray-700 hover:text-red-600 pl-8">Donation History</a>
+                <a href="<?php echo BASE_URL; ?>/views/donor/blood-inventory.php" class="block py-2 px-4 text-gray-700 hover:text-red-600 pl-8">Blood Inventory</a>
+                <a href="<?php echo BASE_URL; ?>/views/requests/index.php" class="block py-2 px-4 text-gray-700 hover:text-red-600 pl-8">Donation Requests</a>
             <?php endif; ?>
-            <a href="<?php echo BASE_URL; ?>/views/requests/create.php" class="block py-2 px-4 text-gray-700 hover:text-red-600">Request Donation</a>
-            <div class="py-2 px-4 text-gray-700"><?php echo htmlspecialchars($user['email']); ?></div>
-            <a href="<?php echo BASE_URL; ?>/views/auth/logout.php" class="block py-2 px-4 text-red-600 hover:text-red-800">Logout</a>
+
+            <?php if ($isAdmin): ?>
+                <div class="py-1 px-4 bg-gray-100 font-medium text-sm text-gray-800">Admin</div>
+                <a href="<?php echo BASE_URL; ?>/views/admin/dashboard.php" class="block py-2 px-4 text-gray-700 hover:text-red-600 pl-8">Admin Panel</a>
+                <a href="<?php echo BASE_URL; ?>/views/admin/manage-inventory.php" class="block py-2 px-4 text-gray-700 hover:text-red-600 pl-8">Manage Inventory</a>
+                <a href="<?php echo BASE_URL; ?>/views/admin/manage-hospitals.php" class="block py-2 px-4 text-gray-700 hover:text-red-600 pl-8">Manage Hospitals</a>
+            <?php endif; ?>
+
+            <a href="<?php echo BASE_URL; ?>/views/requests/create.php" class="block py-2 px-4 bg-red-600 text-white hover:bg-red-700 mt-2 mx-4 rounded text-center">Request Donation</a>
+            <div class="py-2 px-4 text-gray-700 mt-2"><?php echo htmlspecialchars($user['email']); ?></div>
+            <a href="<?php echo BASE_URL; ?>/views/auth/logout.php" class="block py-2 px-4 text-red-600 hover:text-red-800 border-t mt-2">Logout</a>
         </div>
     </div>
 </nav>
@@ -132,7 +147,7 @@ $unreadCount = $stmt->fetch(PDO::FETCH_ASSOC)['unread_count'];
             mobileMenu.classList.toggle('hidden');
         });
 
-        // Dropdown menu handling
+        // Dropdown menu handling for desktop
         const dropdownGroups = document.querySelectorAll('.relative.group');
 
         dropdownGroups.forEach(group => {

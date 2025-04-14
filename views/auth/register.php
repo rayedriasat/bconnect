@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
     // Then validate phone format
     elseif (!preg_match('/^01\d{9}$/', $phone)) {
-        $_SESSION['error_message'] = 'Phone must be 11 digits starting with 01 (e.g. 01777158099)';
+        $_SESSION['error_message'] = 'Phone must be 11 digits starting with 01 (e.g. 01XXXXXXXXX)';
     } else {
         // Check for existing email or phone
         $stmt = $conn->prepare("SELECT email, phone_number FROM Users WHERE email = ? OR phone_number = ?");

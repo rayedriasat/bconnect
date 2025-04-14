@@ -107,23 +107,12 @@ require_once __DIR__ . '/../../includes/header.php';
 
 <body class="bg-gray-100">
     <?php require_once __DIR__ . '/../../includes/navigation.php'; ?>
-    <?php require_once __DIR__ . '/../../includes/_alerts.php'; ?>
 
     <div class="max-w-3xl mx-auto px-4 py-8">
         <div class="bg-white rounded-lg shadow-md p-6">
             <h2 class="text-2xl font-bold mb-6">Become a Blood Donor</h2>
 
-            <?php if ($error): ?>
-                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                    <?php echo htmlspecialchars($error); ?>
-                </div>
-            <?php endif; ?>
-
-            <?php if ($success): ?>
-                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-                    <?php echo htmlspecialchars($success); ?>
-                </div>
-            <?php endif; ?>
+            <?php require_once __DIR__ . '/../../includes/_alerts.php'; ?>
 
             <form method="POST" class="space-y-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -34,7 +34,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 case 'update':
                     $stmt = $conn->prepare("
                         UPDATE BloodInventory 
-                        SET units_available = ? 
+                        SET quantity = ?,
+                            last_updated = CURRENT_TIMESTAMP 
                         WHERE inventory_id = ?
                     ");
                     $stmt->execute([
@@ -79,16 +80,10 @@ $stmt = $conn->prepare("
 ");
 $stmt->execute();
 $inventory = $stmt->fetchAll(PDO::FETCH_ASSOC);
-?>
 
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Blood Inventory - BloodConnect Admin</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+// Set page title and include header
+$pageTitle = 'Manage Blood Inventory - BloodConnect Admin';
+$additionalHeadContent = '
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
@@ -139,24 +134,15 @@ $inventory = $stmt->fetchAll(PDO::FETCH_ASSOC);
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         }
     </style>
-</head>
+';
+require_once __DIR__ . '/../../includes/header.php';
+?>
 
 <body class="bg-gray-100">
     <?php require_once '../../includes/navigation.php'; ?>
-    <?php require_once '../../includes/_alerts.php'; ?>
 
     <div class="max-w-7xl mx-auto px-4 py-8">
-        <?php if ($success): ?>
-            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-                <?php echo $success; ?>
-            </div>
-        <?php endif; ?>
-
-        <?php if ($error): ?>
-            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                <?php echo $error; ?>
-            </div>
-        <?php endif; ?>
+        <?php require_once '../../includes/_alerts.php'; ?>
 
         <!-- Add/Update Inventory Form -->
         <div class="bg-white rounded-lg shadow p-6 mb-6">
@@ -240,7 +226,7 @@ $inventory = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                         <input type="hidden" name="inventory_id"
                                             value="<?php echo $item['inventory_id']; ?>">
                                         <input type="number" name="units_available"
-                                            value="<?php echo $item['units_available']; ?>"
+                                            value="<?php echo $item['quantity']; ?>"
                                             class="table-input">
                                         <button type="submit"
                                             class="text-blue-600 hover:text-blue-800 font-medium">

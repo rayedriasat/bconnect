@@ -1,9 +1,10 @@
 <?php
 require_once '../../includes/auth_middleware.php';
 require_once '../../classes/Location.php';
+require_once '../../Core/functs.php';
 
-$success = '';
-$error = '';
+$error = getFlashMessage('error');
+$success = getFlashMessage('success');
 
 // Initialize Location class
 $locationManager = new Location($conn);
@@ -24,13 +25,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_location'])) {
             $_POST['longitude'],
             $_POST['address'] ?? ''
         )) {
-            $success = 'Your location has been updated successfully';
-            $currentLocation = $locationManager->getUserLocation($user['user_id']);
+            $_SESSION['success_message'] = 'Your location has been updated successfully';
+            header('Location: ' . BASE_URL . '/views/profile/location.php');
+            exit();
         } else {
             throw new Exception('Failed to update location');
         }
     } catch (Exception $e) {
-        $error = $e->getMessage();
+        $_SESSION['error_message'] = $e->getMessage();
+        header('Location: ' . BASE_URL . '/views/profile/location.php');
+        exit();
     }
 }
 
@@ -53,17 +57,7 @@ require_once __DIR__ . '/../../includes/header.php';
         <div class="bg-white rounded-lg shadow-md p-6">
             <h2 class="text-2xl font-bold mb-6">Manage Your Location</h2>
 
-            <?php if ($success): ?>
-                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-                    <?php echo htmlspecialchars($success); ?>
-                </div>
-            <?php endif; ?>
-
-            <?php if ($error): ?>
-                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                    <?php echo htmlspecialchars($error); ?>
-                </div>
-            <?php endif; ?>
+            <?php require_once __DIR__ . '/../../includes/_alerts.php'; ?>
 
             <div class="mb-6">
                 <p class="text-gray-600 mb-2">Your current location helps us match you with nearby donation requests and hospitals.</p>

@@ -17,14 +17,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (isset($_POST['action'])) {
             switch ($_POST['action']) {
                 case 'add':
-                    $stmt = $conn->prepare("INSERT INTO Hospital (name, address, phone) VALUES (?, ?, ?)");
-                    $stmt->execute([$_POST['name'], $_POST['address'], $_POST['phone']]);
+                    $stmt = $conn->prepare("INSERT INTO Hospital (name, address, email, phone_number) VALUES (?, ?, ?, ?)");
+                    $stmt->execute([$_POST['name'], $_POST['address'], $_POST['email'], $_POST['phone_number']]);
                     $_SESSION['success_message'] = 'Hospital added successfully';
                     break;
 
                 case 'edit':
-                    $stmt = $conn->prepare("UPDATE Hospital SET name = ?, address = ?, phone = ? WHERE hospital_id = ?");
-                    $stmt->execute([$_POST['name'], $_POST['address'], $_POST['phone'], $_POST['hospital_id']]);
+                    $stmt = $conn->prepare("UPDATE Hospital SET name = ?, address = ?, email = ?, phone_number = ? WHERE hospital_id = ?");
+                    $stmt->execute([$_POST['name'], $_POST['address'], $_POST['email'], $_POST['phone_number'], $_POST['hospital_id']]);
                     $_SESSION['success_message'] = 'Hospital updated successfully';
                     break;
 
@@ -50,7 +50,6 @@ require_once __DIR__ . '/../../includes/header.php';
 
 <body class="bg-gray-100">
     <?php require_once '../../includes/navigation.php'; ?>
-    <?php require_once '../../includes/_alerts.php'; ?>
 
     <div class="max-w-7xl mx-auto px-4 py-6">
         <div class="bg-white rounded-lg shadow p-6">
@@ -77,18 +76,7 @@ require_once __DIR__ . '/../../includes/header.php';
                 </div>
             </div>
 
-            <?php if ($error): ?>
-                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                    <?php echo htmlspecialchars($error); ?>
-                </div>
-            <?php endif; ?>
-
-            <?php if ($success): ?>
-                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-                    <?php echo htmlspecialchars($success); ?>
-                </div>
-            <?php endif; ?>
-
+            <?php require_once '../../includes/_alerts.php'; ?>
             <!-- Add New Hospital Form -->
             <form method="POST" class="mb-8 border-b pb-8">
                 <input type="hidden" name="action" value="add">
@@ -154,40 +142,41 @@ require_once __DIR__ . '/../../includes/header.php';
         let searchTimeout;
 
         function performSearch() {
-            const searchValue = $('#searchInput').val();
-            const searchBy = $('#searchBy').val();
+            const searchValue = document.getElementById('searchInput').value;
+            const searchBy = document.getElementById('searchBy').value;
 
             // Show/hide clear button
-            $('#clearSearch').toggleClass('hidden', !searchValue);
+            document.getElementById('clearSearch').classList.toggle('hidden', !searchValue);
 
             // Make AJAX request
-            $.get('<?php echo BASE_URL; ?>/views/admin/ajax/search-hospitals.php', {
-                    search: searchValue,
-                    searchBy: searchBy
+            fetch('<?php echo BASE_URL; ?>/views/admin/ajax/search-hospitals.php?search=' +
+                    encodeURIComponent(searchValue) + '&searchBy=' + encodeURIComponent(searchBy))
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('hospitalsTableBody').innerHTML = data.html;
                 })
-                .done(function(response) {
-                    $('#hospitalsTableBody').html(response.html);
-                })
-                .fail(function(jqXHR, textStatus, errorThrown) {
-                    console.error('Search failed:', errorThrown);
+                .catch(error => {
+                    console.error('Search failed:', error);
                 });
         }
 
         // Initial load
-        performSearch();
+        document.addEventListener('DOMContentLoaded', function() {
+            performSearch();
+        });
 
         // Search input event handler with debouncing
-        $('#searchInput').on('input', function() {
+        document.getElementById('searchInput').addEventListener('input', function() {
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(performSearch, 300); // 300ms delay
         });
 
         // Search by dropdown change handler
-        $('#searchBy').on('change', performSearch);
+        document.getElementById('searchBy').addEventListener('change', performSearch);
 
         // Clear button handler
-        $('#clearSearch').on('click', function() {
-            $('#searchInput').val('');
+        document.getElementById('clearSearch').addEventListener('click', function() {
+            document.getElementById('searchInput').value = '';
             performSearch();
         });
     </script>
