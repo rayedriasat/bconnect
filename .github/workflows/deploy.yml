@@ -1,0 +1,22 @@
+name: Deploy to InfinityFree
+on:
+  workflow_dispatch:
+    inputs:
+      deploy_message:
+        description: 'Deployment Message'
+        required: true
+        default: 'Manual deployment triggered'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: FTP Deploy
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          server-dir: /htdocs/
