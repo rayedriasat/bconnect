@@ -36,7 +36,7 @@ $activeRequests = $stmt->fetchAll(PDO::FETCH_ASSOC);
 // Get user's notifications
 $stmt = $conn->prepare("
     SELECT * FROM Notification 
-    WHERE user_id = ? 
+    WHERE user_id = ? AND type = 'in-app'
     ORDER BY sent_at DESC 
     LIMIT 5
 ");
