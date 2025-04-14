@@ -1,8 +1,9 @@
 <?php
 require_once '../../includes/auth_middleware.php';
+require_once '../../Core/functs.php';
 
-$success = '';
-$error = '';
+$error = getFlashMessage('error');
+$success = getFlashMessage('success');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $currentPassword = $_POST['current_password'];
@@ -10,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $confirmPassword = $_POST['confirm_password'];
 
     if ($newPassword !== $confirmPassword) {
-        $error = 'New passwords do not match';
+        $_SESSION['error_message'] = 'New passwords do not match';
     } else {
         // Verify current password and update to new password
         $stmt = $conn->prepare("SELECT password_hash FROM Users WHERE user_id = ?");
@@ -22,14 +23,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $stmt = $conn->prepare("UPDATE Users SET password_hash = ? WHERE user_id = ?");
             if ($stmt->execute([$newPasswordHash, $user['user_id']])) {
-                $success = 'Password updated successfully';
+                $_SESSION['success_message'] = 'Password updated successfully';
             } else {
-                $error = 'Failed to update password';
+                $_SESSION['error_message'] = 'Failed to update password';
             }
         } else {
-            $error = 'Current password is incorrect';
+            $_SESSION['error_message'] = 'Current password is incorrect';
         }
     }
+
+    // Redirect to refresh the page and show messages
+    header('Location: ' . BASE_URL . '/views/profile/change-password.php');
+    exit();
 }
 
 $pageTitle = 'Change Password - BloodConnect';
@@ -39,21 +44,11 @@ require_once __DIR__ . '/../../includes/header.php';
 <body class="bg-gray-100">
     <?php require_once __DIR__ . '/../../includes/navigation.php'; ?>
 
+
     <div class="max-w-2xl mx-auto px-4 py-8">
         <div class="bg-white rounded-lg shadow-md p-6">
             <h2 class="text-2xl font-bold mb-6">Change Password</h2>
-
-            <?php if ($success): ?>
-                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-                    <?php echo htmlspecialchars($success); ?>
-                </div>
-            <?php endif; ?>
-
-            <?php if ($error): ?>
-                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                    <?php echo htmlspecialchars($error); ?>
-                </div>
-            <?php endif; ?>
+            <?php require_once __DIR__ . '/../../includes/_alerts.php'; ?>
 
             <form method="POST" class="space-y-6">
                 <div>

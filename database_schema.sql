@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 11, 2025 at 07:33 AM
+-- Generation Time: Apr 14, 2025 at 08:41 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -516,7 +516,7 @@ ALTER TABLE `DonationRequest`
 -- Constraints for table `DonationRequestHistory`
 --
 ALTER TABLE `DonationRequestHistory`
-  ADD CONSTRAINT `DonationRequestHistory_ibfk_1` FOREIGN KEY (`hospital_id`) REFERENCES `Hospital` (`hospital_id`),
+  ADD CONSTRAINT `DonationRequestHistory_ibfk_1` FOREIGN KEY (`hospital_id`) REFERENCES `Hospital` (`hospital_id`) ON DELETE CASCADE,
   ADD CONSTRAINT `DonationRequestHistory_ibfk_2` FOREIGN KEY (`requester_id`) REFERENCES `Users` (`user_id`),
   ADD CONSTRAINT `DonationRequestHistory_ibfk_3` FOREIGN KEY (`fulfilled_by`) REFERENCES `Donor` (`donor_id`);
 

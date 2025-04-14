@@ -1,8 +1,9 @@
 <?php
 require_once '../../includes/auth_middleware.php';
+require_once '../../Core/functs.php';
 
-$success = '';
-$error = '';
+$error = getFlashMessage('error');
+$success = getFlashMessage('success');
 
 // Handle 2FA toggle
 if (isset($_POST['toggle_2fa'])) {
@@ -15,9 +16,13 @@ if (isset($_POST['toggle_2fa'])) {
         $_SESSION['user']['two_factor_enabled'] = $new_2fa_status;
         $user = $_SESSION['user'];
 
-        $success = '2-Factor Authentication has been ' . ($new_2fa_status ? 'enabled' : 'disabled');
+        $_SESSION['success_message'] = '2-Factor Authentication has been ' . ($new_2fa_status ? 'enabled' : 'disabled');
+        header('Location: ' . BASE_URL . '/views/profile/index.php');
+        exit();
     } catch (Exception $e) {
-        $error = 'Failed to update 2FA settings';
+        $_SESSION['error_message'] = 'Failed to update 2FA settings';
+        header('Location: ' . BASE_URL . '/views/profile/index.php');
+        exit();
     }
 }
 
@@ -47,14 +52,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
         }
 
         $conn->commit();
-        $success = 'Profile updated successfully';
+        $_SESSION['success_message'] = 'Profile updated successfully';
 
         // Update session data
         $_SESSION['user']['phone_number'] = $_POST['phone_number'];
         $user = $_SESSION['user'];
+
+        header('Location: ' . BASE_URL . '/views/profile/index.php');
+        exit();
     } catch (Exception $e) {
         $conn->rollBack();
-        $error = 'Failed to update profile';
+        $_SESSION['error_message'] = 'Failed to update profile';
+        header('Location: ' . BASE_URL . '/views/profile/index.php');
+        exit();
     }
 }
 
@@ -77,17 +87,7 @@ require_once __DIR__ . '/../../includes/header.php';
         <div class="bg-white rounded-lg shadow-md p-6">
             <h2 class="text-2xl font-bold mb-6">My Profile</h2>
 
-            <?php if ($success): ?>
-                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-                    <?php echo htmlspecialchars($success); ?>
-                </div>
-            <?php endif; ?>
-
-            <?php if ($error): ?>
-                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                    <?php echo htmlspecialchars($error); ?>
-                </div>
-            <?php endif; ?>
+            <?php require_once __DIR__ . '/../../includes/_alerts.php'; ?>
 
             <form method="POST" class="space-y-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
