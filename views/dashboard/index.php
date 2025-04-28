@@ -183,8 +183,6 @@ require_once __DIR__ . '/../../includes/header.php';
                             class="block text-blue-600 hover:text-blue-800">Manage Administrators</a>
                         <a href="<?php echo BASE_URL; ?>/views/admin/manage-users.php"
                             class="block text-blue-600 hover:text-blue-800">Manage Users</a>
-                        <a href="<?php echo BASE_URL; ?>/views/admin/reports.php"
-                            class="block text-blue-600 hover:text-blue-800">View Reports</a>
                     </div>
                 </div>
             <?php endif; ?>
